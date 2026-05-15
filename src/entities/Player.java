@@ -5,10 +5,12 @@ import java.util.List;
 
 public class Player {
 
-    public int gold;
-    public Rod equippedRod;
-    public List<Fish> inventory = new ArrayList<>();
-    public int maxSlots;
+    private int gold;
+    private Rod equippedRod;
+    private List<Fish> inventory = new ArrayList<>();
+    private int maxSlots;
+    private int x;
+    private int y;
 
     public Player(Rod startRod) {
         this.gold = 0;
@@ -24,6 +26,14 @@ public class Player {
         return true;
     }
 
+    public int getGold() {
+        return gold;
+    }
+
+    public void addGold(int gold) {
+        this.gold += gold;
+    }
+
     public int sellAll() {
         int total = 0;
         for(Fish f : inventory) {
@@ -33,7 +43,12 @@ public class Player {
         return total;
     }
 
+    public int getX() {
+        return x;
+    }
 
-
+    public int getY() {
+        return y;
+    }
 }
 
