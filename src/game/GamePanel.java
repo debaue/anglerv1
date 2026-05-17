@@ -5,6 +5,7 @@ import java.awt.*;
 
 import data.RodRegistry;
 import entities.Player;
+import util.InputHandler;
 import world.Camera;
 import world.TileMap;
 
@@ -16,16 +17,20 @@ public class GamePanel extends JPanel {
     private Camera camera;
     private Player player;
     private Timer timer;
+    private InputHandler input;
 
 
     public GamePanel() {
         setPreferredSize(new Dimension(WIDTH, HEIGHT));
         setBackground(Color.BLACK);
+        setFocusable(true);
 
         tileMap = new TileMap();
         tileMap.loadFromFile("src/world/map01.txt");
         player = new Player(RodRegistry.getStarter());
         camera = new Camera(WIDTH,HEIGHT);
+        input = new InputHandler();
+        addKeyListener(input);
 
         timer = new Timer(16, e-> {
             update(0.016f);
@@ -36,7 +41,9 @@ public class GamePanel extends JPanel {
     }
 
     private void update(float delta) {
+        player.update(input);
         camera.update(player.getX(), player.getY(), tileMap);
+
     }
 
 
@@ -54,6 +61,8 @@ public class GamePanel extends JPanel {
             }
         }
 
+        g2.setColor(Color.YELLOW);
+        g2.fillOval(player.getX() - camera.getX(), player.getY() - camera.getY(), 16, 16);
 
     }
 
