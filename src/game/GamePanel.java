@@ -6,6 +6,7 @@ import java.awt.*;
 import data.RodRegistry;
 import entities.Player;
 import util.InputHandler;
+import util.SpriteLoader;
 import world.Camera;
 import world.TileMap;
 
@@ -21,6 +22,7 @@ public class GamePanel extends JPanel {
 
 
     public GamePanel() {
+        SpriteLoader.init();
         setPreferredSize(new Dimension(WIDTH, HEIGHT));
         setBackground(Color.BLACK);
         setFocusable(true);
@@ -41,7 +43,7 @@ public class GamePanel extends JPanel {
     }
 
     private void update(float delta) {
-        player.update(input);
+        player.update(delta, input);
         camera.update(player.getX(), player.getY(), tileMap);
 
     }
@@ -61,8 +63,7 @@ public class GamePanel extends JPanel {
             }
         }
 
-        g2.setColor(Color.YELLOW);
-        g2.fillOval(player.getX() - camera.getX(), player.getY() - camera.getY(), 16, 16);
+       g2.drawImage(player.getCurrentFrame(), player.getX()- camera.getX(), player.getY()- camera.getY(), null);
 
     }
 
