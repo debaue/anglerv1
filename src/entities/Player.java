@@ -13,8 +13,8 @@ public class Player {
     private Rod equippedRod;
     private List<Fish> inventory = new ArrayList<>();
     private int maxSlots;
-    private int x;
-    private int y;
+    private int x = 100;
+    private int y = 100;
     private final int SPEED = 3;
     private AnimationController animator;
     private int direction = 0;

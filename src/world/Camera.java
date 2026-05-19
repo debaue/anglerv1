@@ -15,11 +15,11 @@ public class Camera {
         this.y = 0;
     }
 
-    public void update(int playerX,int playerY, TileMap map) {
-        x = playerX -screenWidth / 2;
+    public void update(int playerX, int playerY, TileMap map) {
+        x = playerX - screenWidth  / 2;
         y = playerY - screenHeight / 2;
 
-        x = Math.max(0,x);
+        x = Math.max(0, x);
         y = Math.max(0, y);
         x = Math.min(x, map.getCols() * TileMap.TILE_SIZE - screenWidth);
         y = Math.min(y, map.getRows() * TileMap.TILE_SIZE - screenHeight);
