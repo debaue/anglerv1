@@ -45,7 +45,7 @@ public class GamePanel extends JPanel {
     }
 
     private void update(float delta) {
-        player.update(delta, input);
+        player.update(delta, input, tileMap);
         camera.update(player.getX(), player.getY(), tileMap);
 
     }
@@ -66,7 +66,8 @@ public class GamePanel extends JPanel {
         drawTileLayer(g2, TileType.WATER, SpriteLoader.getWaterTiles());
         drawTileLayer(g2,TileType.GROUND,SpriteLoader.getGroundtiles());
        g2.drawImage(player.getCurrentFrame(), player.getX()- camera.getX(), player.getY()- camera.getY(), null);
-
+        // in paintComponent nach Player drawImage:
+        player.getHitBox().draw(g2, camera.getX(), camera.getY());
     }
 
     private void drawTileLayer(Graphics2D g2, TileType type, BufferedImage[] tiles) {
@@ -82,14 +83,8 @@ public class GamePanel extends JPanel {
                 if(mask == 0) continue;
                 int index = type.lookup[mask];
                 g2.drawImage(tiles[index], screenX, screenY, null);
-                g2.setColor(Color.RED);
-                g2.setFont(new Font("Arial", Font.PLAIN, 8));
-                g2.drawString(String.valueOf(mask), screenX + 2, screenY + 10);
 
             }
         }
     }
-
-
-
 }
