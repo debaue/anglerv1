@@ -47,6 +47,14 @@ public class Player {
         return true;
     }
 
+    public List<Fish> getInventory() {
+        return inventory;
+    }
+
+    public int getMaxSlots() {
+        return maxSlots;
+    }
+
     public int getGold() {
         return gold;
     }

@@ -11,7 +11,7 @@ public class Game {
 
     public enum GameState {
         EXPLORING,
-        FISHING_MENU
+        INVENTORY, FISHING_MENU
     }
 
     private GameState state = GameState.EXPLORING;
@@ -41,7 +41,19 @@ public class Game {
                     state = GameState.FISHING_MENU;
                     input.fishing = false;
                 }
+                if(input.inventoryPressed) {
+                    state = GameState.INVENTORY;
+                    input.inventoryPressed = false;
+                }
             }
+            case INVENTORY -> {
+                if (input.inventoryPressed || input.escape) {
+                    state = GameState.EXPLORING;
+                    input.inventoryPressed = false;
+                    input.escape = false;
+                }
+            }
+
             case FISHING_MENU -> {
                 fishingSystem.update(delta);
                 if(input.escape) {
