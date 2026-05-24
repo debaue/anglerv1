@@ -7,13 +7,13 @@ public enum Rarity {
     LEGENDARY(8.0f, 3, 0.25f);
 
 
-    public final float preisMultiplikator;
-    public final int spawnHoehe;
+    public final float preisMultiplier;
+    public final int spawnHeight;
     public final float biteWindow;
 
-    Rarity(float preisMultiplikator, int spawnHoehe, float biteWindow) {
-        this.preisMultiplikator = preisMultiplikator;
-        this.spawnHoehe = spawnHoehe;
+    Rarity(float preisMultiplier, int spawnHeight, float biteWindow) {
+        this.preisMultiplier = preisMultiplier;
+        this.spawnHeight = spawnHeight;
         this.biteWindow = biteWindow;
     }
 

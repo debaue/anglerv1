@@ -7,15 +7,17 @@ public class Camera {
 
     private final int screenWidth;
     private final int screenHeight;
+    private TileMap map;
 
-    public Camera(int screenWidth, int screenHeight) {
+    public Camera(int screenWidth, int screenHeight, TileMap map) {
         this.screenWidth = screenWidth;
         this.screenHeight = screenHeight;
         this.x = 0;
         this.y = 0;
+        this.map = map;
     }
 
-    public void update(int playerX, int playerY, TileMap map) {
+    public void update(int playerX, int playerY) {
         x = playerX - screenWidth  / 2;
         y = playerY - screenHeight / 2;
 

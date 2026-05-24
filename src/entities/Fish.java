@@ -14,7 +14,7 @@ public class Fish {
     }
 
     private int calcPrice() {
-        return Math.round(weightKg*type.basePrice*type.rarity.preisMultiplikator);
+        return Math.round(weightKg*type.basePrice*type.rarity.preisMultiplier);
     }
 
     @Override

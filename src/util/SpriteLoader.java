@@ -10,18 +10,15 @@ public class SpriteLoader {
 
     private static BufferedImage[][] idle_frames;
     private static BufferedImage[][] walk_frames;
-    private static BufferedImage[][] fish_frames;
     private static BufferedImage[]   grass_tiles;
     private static BufferedImage[]   water_tiles;
     private static BufferedImage[]   ground_tiles;
 
     public static void init() {
         System.out.println(SpriteLoader.class.getResource("/character/Character_Idle_Angle.png"));
-        // wenn null → Pfad falsch oder kein Resources Root
 
         idle_frames  = loadSpritesSet("/player-sprites/Character_Idle_Angle.png", 48);
         walk_frames  = loadSpritesSet("/player-sprites/Character_Walk_Angle.png", 48);
-        fish_frames  = loadSpritesSet("/player-sprites/Character_Fishing_Angle.png", 48);
         ground_tiles  = loadTileSet("/tileset-sprites/Tileset_Ground.png", 32);
         grass_tiles  = loadTileSet("/tileset-sprites/Tileset_Grass.png", 32);
         water_tiles  = loadTileSet("/tileset-sprites/TileSet_Wasser.png", 32);
@@ -82,7 +79,6 @@ public class SpriteLoader {
 
     public static BufferedImage[][] getIdleFrames()  { return idle_frames; }
     public static BufferedImage[][] getWalkFrames()  { return walk_frames; }
-    public static BufferedImage[][] getFishFrames()  { return fish_frames; }
     public static BufferedImage[]   getGrassTiles()  { return grass_tiles; }
     public static BufferedImage[]   getWaterTiles()  { return water_tiles; }
     public static BufferedImage[] getGroundtiles() {return ground_tiles;}

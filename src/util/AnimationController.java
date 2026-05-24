@@ -17,13 +17,11 @@ public class AnimationController {
     private int frameIndex = 0;
     private float frameTimer = 0f;
     private float frameSpeed = 0.15f;
-    private boolean walking = false;
     private AnimState state;
 
     public AnimationController() {
         this.idleFrames = SpriteLoader.getIdleFrames();
         this.walkFrames = SpriteLoader.getWalkFrames();
-        this.fishFrames = SpriteLoader.getFishFrames();
     }
 
     public void update(float delta, AnimState state, int direction) {

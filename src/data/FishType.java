@@ -14,7 +14,4 @@ public class FishType {
         this.basePrice = basePrice;
         this.rarity = rarity;
     }
-
-
-
 }

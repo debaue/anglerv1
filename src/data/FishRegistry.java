@@ -10,11 +10,11 @@ public class FishRegistry {
 
     public static FishType getRandom() {
         int totalWeight = 0;
-        for(FishType ft : ALL) { totalWeight += ft.rarity.spawnHoehe;}
+        for(FishType ft : ALL) { totalWeight += ft.rarity.spawnHeight;}
         int roll = (int) (Math.random() * totalWeight);
         int num = 0;
         for(FishType ft:  ALL) {
-            num += ft.rarity.spawnHoehe;
+            num += ft.rarity.spawnHeight;
             if(roll <num) return ft;
         }
         return ALL[0];
