@@ -1,6 +1,7 @@
 package game;
 
 import data.RodRegistry;
+import entities.Fish;
 import entities.Player;
 import util.InputHandler;
 import util.SpriteLoader;
@@ -56,7 +57,24 @@ public class Game {
 
             case FISHING_MENU -> {
                 fishingSystem.update(delta);
+
+                if(fishingSystem.getState() == FishingSystem.FishState.CASTING
+                        && fishingSystem.isSuccess()) {
+                    Fish caught = fishingSystem.collectCaughtFish();
+                    System.out.println("Caught: " + (caught != null ? caught.type.name : "null"));
+                    if(caught != null) {
+                        boolean added = player.addFish(caught);
+                        System.out.println("Added: " + added + " InvSize: " + player.getInventory().size());
+                    }
+                    fishingSystem.resetSuccess();
+                }
+
                 if(input.escape) {
+                    if(fishingSystem.isSuccess()) {
+                        Fish caught = fishingSystem.collectCaughtFish();
+                        if(caught != null) player.addFish(caught);
+                    }
+                    fishingSystem.fullReset();
                     state = GameState.EXPLORING;
                     input.escape = false;
                 }

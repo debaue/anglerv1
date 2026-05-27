@@ -24,15 +24,15 @@ public class GamePanel extends JPanel {
 
         InputHandler input = new InputHandler();
         addKeyListener(input);
+        addMouseListener(input);
 
         game = new Game(input);
 
-        timer = new Timer(16, e-> {
+        timer = new Timer(16, e -> {
             game.update(0.016f);
             repaint();
         });
         timer.start();
-
     }
 
     @Override
@@ -57,21 +57,21 @@ public class GamePanel extends JPanel {
         );
 
         switch (game.getState()) {
-            case FISHING_MENU -> drawFishingMenu(g2);
+            case FISHING_MENU -> drawFishingScreen(g2);
             case INVENTORY -> drawInventory(g2);
         }
     }
 
     private void drawTileLayer(Graphics2D g2, TileType type, BufferedImage[] tiles) {
-        for(int r = 0; r <= game.getTileMap().getRows(); r++) {
-            for(int c = 0; c <= game.getTileMap().getCols(); c++) {
+        for (int r = 0; r <= game.getTileMap().getRows(); r++) {
+            for (int c = 0; c <= game.getTileMap().getCols(); c++) {
                 int screenX = c * 32 - game.getCamera().getX();
                 int screenY = r * 32 - game.getCamera().getY();
 
-                 if(screenX + 32 < 0 || screenX > WIDTH)  continue;
-                if(screenY + 32 < 0 || screenY > HEIGHT) continue;
+                if (screenX + 32 < 0 || screenX > WIDTH) continue;
+                if (screenY + 32 < 0 || screenY > HEIGHT) continue;
                 int mask = game.getTileMap().getDualMask(c, r, type);
-                if(mask == 0) continue;
+                if (mask == 0) continue;
                 int index = type.lookup[mask];
                 g2.drawImage(tiles[index], screenX, screenY, null);
             }
@@ -79,13 +79,82 @@ public class GamePanel extends JPanel {
     }
 
 
-    private void drawFishingMenu(Graphics2D g2) {
+    private void drawFishingScreen(Graphics2D g2) {
+        g2.setColor(Color.BLACK);
+        g2.fillRect(0, 0, WIDTH, HEIGHT);
 
-        g2.setColor(new Color(0, 0, 0, 180)); // ← höher = dunkler
-        g2.fillRect(0, 0, GamePanel.WIDTH, GamePanel.HEIGHT);
+        g2.setColor(new Color(100, 180, 240));
+        g2.fillRoundRect(40, 20, WIDTH - 80, HEIGHT - 200, 60, 60);
 
-        g2.setColor(new Color(40, 60, 40, 220));
-        g2.fillRoundRect(300, 180, 360, 200, 16, 16);
+        FishingSystem.FishState fishState = game.getFishing().getState();
+
+        if(fishState == FishingSystem.FishState.CASTING) {
+            g2.setColor(Color.WHITE);
+            g2.setFont(new Font("Monospaced", Font.BOLD, 22));
+            String txt = "Klick ins Wasser zum Werfen!";
+            FontMetrics fm = g2.getFontMetrics();
+            g2.drawString(txt, WIDTH/2 - fm.stringWidth(txt)/2, HEIGHT - 140);
+            return;
+        }
+
+        int bx = game.getFishing().getBobberX();
+        int by = game.getFishing().getBobberY();
+
+        if(fishState == FishingSystem.FishState.BITING) {
+            if((int)(game.getFishing().getBiteTimer() * 4) % 2 == 0) {
+                g2.setColor(Color.YELLOW);
+                g2.fillOval(bx - 18, by - 18, 36, 36);
+            }
+            g2.setColor(Color.RED);
+            g2.fillOval(bx - 12, by - 12, 24, 24);
+            g2.setColor(Color.WHITE);
+            g2.setFont(new Font("Monospaced", Font.BOLD, 28));
+            String txt = "SPACE!";
+            FontMetrics fm = g2.getFontMetrics();
+            g2.drawString(txt, WIDTH/2 - fm.stringWidth(txt)/2, HEIGHT/2);
+            return;
+        }
+
+        if(fishState == FishingSystem.FishState.WAITING) {
+            g2.setColor(Color.RED);
+            g2.fillOval(bx - 12, by - 12, 24, 24);
+            return;
+        }
+
+        if(fishState == FishingSystem.FishState.MINIGAME) {
+            g2.setColor(Color.RED);
+            g2.fillOval(bx - 12, by - 12, 24, 24);
+
+            int barY = HEIGHT - 120;
+            int barW = game.getFishing().getBarWidth();
+            int barX = (WIDTH - barW) / 2;
+            int barH = 50;
+
+            g2.setColor(new Color(255, 180, 200));
+            g2.fillRect(barX, barY, barW, barH);
+
+            int greenX = barX + (int) game.getFishing().getGreenStart();
+            int greenW = (int) game.getFishing().getGreenWidth();
+            g2.setColor(new Color(50, 180, 50));
+            g2.fillRect(greenX, barY, greenW, barH);
+
+            int markerX = barX + (int) game.getFishing().getMarkerX();
+            g2.setColor(new Color(40, 20, 10));
+            g2.fillRect(markerX - 10, barY - 5, 20, barH + 10);
+
+            g2.setColor(Color.WHITE);
+            g2.setFont(new Font("Monospaced", Font.BOLD, 16));
+            g2.drawString("Treffer: " + game.getFishing().getHits() + "/3", barX, barY - 10);
+            g2.drawString("Fehler: " + game.getFishing().getMisses() + "/2", barX + barW - 100, barY - 10);
+        }
+
+        if(fishState == FishingSystem.FishState.RESULT) {
+            g2.setColor(game.getFishing().isSuccess() ? Color.GREEN : Color.RED);
+            g2.setFont(new Font("Monospaced", Font.BOLD, 32));
+            String txt = game.getFishing().isSuccess() ? "Gefangen!" : "Entwischt!";
+            FontMetrics fm = g2.getFontMetrics();
+            g2.drawString(txt, WIDTH/2 - fm.stringWidth(txt)/2, HEIGHT/2);
+        }
     }
 
     private void drawInventory(Graphics2D g2) {
@@ -133,5 +202,4 @@ public class GamePanel extends JPanel {
             }
         }
     }
-
 }
