@@ -80,11 +80,9 @@ public class GamePanel extends JPanel {
 
 
     private void drawFishingScreen(Graphics2D g2) {
-        g2.setColor(Color.BLACK);
-        g2.fillRect(0, 0, WIDTH, HEIGHT);
+        g2.drawImage(SpriteLoader.getFishingEarthBg(), 0, 0, WIDTH, HEIGHT, null);
 
-        g2.setColor(new Color(100, 180, 240));
-        g2.fillRoundRect(40, 20, WIDTH - 80, HEIGHT - 200, 60, 60);
+        g2.drawImage(SpriteLoader.getFishingBg(), 40, 20, WIDTH-80, HEIGHT-200, null);
 
         FishingSystem.FishState fishState = game.getFishing().getState();
 
@@ -101,12 +99,8 @@ public class GamePanel extends JPanel {
         int by = game.getFishing().getBobberY();
 
         if(fishState == FishingSystem.FishState.BITING) {
-            if((int)(game.getFishing().getBiteTimer() * 4) % 2 == 0) {
-                g2.setColor(Color.YELLOW);
-                g2.fillOval(bx - 18, by - 18, 36, 36);
-            }
-            g2.setColor(Color.RED);
-            g2.fillOval(bx - 12, by - 12, 24, 24);
+            g2.drawImage(SpriteLoader.getBobberBiting(),
+                    bx - 16, by - 16, 32, 32, null);
             g2.setColor(Color.WHITE);
             g2.setFont(new Font("Monospaced", Font.BOLD, 28));
             String txt = "SPACE!";
@@ -116,14 +110,14 @@ public class GamePanel extends JPanel {
         }
 
         if(fishState == FishingSystem.FishState.WAITING) {
-            g2.setColor(Color.RED);
-            g2.fillOval(bx - 12, by - 12, 24, 24);
+            g2.drawImage(SpriteLoader.getBobberNormal(),
+                    bx - 16, by - 16, 32, 32, null);
             return;
         }
 
         if(fishState == FishingSystem.FishState.MINIGAME) {
-            g2.setColor(Color.RED);
-            g2.fillOval(bx - 12, by - 12, 24, 24);
+            g2.drawImage(SpriteLoader.getBobberBiting(),
+                    bx - 16, by - 16, 32, 32, null);
 
             int barY = HEIGHT - 120;
             int barW = game.getFishing().getBarWidth();

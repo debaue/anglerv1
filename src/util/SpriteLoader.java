@@ -13,15 +13,25 @@ public class SpriteLoader {
     private static BufferedImage[]   grass_tiles;
     private static BufferedImage[]   water_tiles;
     private static BufferedImage[]   ground_tiles;
+    private static BufferedImage fishingBg;
+    private static BufferedImage fishingEarthBg;
+    private static BufferedImage bobberNormal;
+    private static BufferedImage bobberBiting;
 
     public static void init() {
-        System.out.println(SpriteLoader.class.getResource("/character/Character_Idle_Angle.png"));
+        System.out.println("EarthBg: " + SpriteLoader.class.getResource("/fishing/fishing_earth_bg.png"));
+        System.out.println("FishingBg: " + SpriteLoader.class.getResource("/fishing/fishing_screen.png"));
+        System.out.println("BobberNormal: " + SpriteLoader.class.getResource("/fishing/bobber_normal.png"));
 
         idle_frames  = loadSpritesSet("/player-sprites/Character_Idle_Angle.png", 48);
         walk_frames  = loadSpritesSet("/player-sprites/Character_Walk_Angle.png", 48);
         ground_tiles  = loadTileSet("/tileset-sprites/Tileset_Ground.png", 32);
         grass_tiles  = loadTileSet("/tileset-sprites/Tileset_Grass.png", 32);
         water_tiles  = loadTileSet("/tileset-sprites/TileSet_Wasser.png", 32);
+        fishingBg = load("/fishing/fishing_screen.png");
+        fishingEarthBg= load("/fishing/fishing_screen_earth.png");
+        bobberNormal = load("/fishing/bobber_normal.png");
+        bobberBiting = load("/fishing/bobber_biting.png");
     }
 
     public static BufferedImage[][] loadSpritesSet(String path, int tileSize) {
@@ -82,4 +92,8 @@ public class SpriteLoader {
     public static BufferedImage[]   getGrassTiles()  { return grass_tiles; }
     public static BufferedImage[]   getWaterTiles()  { return water_tiles; }
     public static BufferedImage[] getGroundtiles() {return ground_tiles;}
+    public static BufferedImage getFishingBg() { return fishingBg; }
+    public static BufferedImage getFishingEarthBg() { return fishingEarthBg; }
+    public static BufferedImage getBobberNormal() { return bobberNormal; }
+    public static BufferedImage getBobberBiting() { return bobberBiting; }
 }

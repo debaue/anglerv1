@@ -15,36 +15,125 @@ public class Player {
     private Rod equippedRod;
     private List<Fish> inventory = new ArrayList<>();
     private int maxSlots;
+
     private final int SPEED = 3;
     private AnimationController animator;
     private int direction = 0;
+
     private int x = 100;
     private int y = 100;
-    private HitBox hitBox;
-    private HitBox fishingHitBox;
-    private InputHandler input;
-    private TileMap map;
 
+    private final HitBox hitBox;
+    private final HitBox fishingHitBox;
 
+    private final InputHandler input;
+    private final TileMap map;
 
-    public Player(Rod startRod,InputHandler input, TileMap map) {
+    public Player(Rod startRod, InputHandler input, TileMap map) {
         this.gold = 0;
         this.equippedRod = startRod;
         this.maxSlots = 10;
         this.animator = new AnimationController();
-        this.hitBox = new HitBox(32,32);
-        this.fishingHitBox = new HitBox(64,64);
+
+        this.hitBox = new HitBox(32, 32);
+        this.fishingHitBox = new HitBox(64, 64);
+
         this.input = input;
         this.map = map;
 
+        updateHitBoxes();
+    }
+
+    private void updateHitBoxes() {
+        hitBox.update(x, y);
+        fishingHitBox.update(x - 16, y - 16);
+    }
+
+    public void update(float delta) {
+        float dx = 0;
+        float dy = 0;
+
+        if (input.up) dy -= 1;
+        if (input.down) dy += 1;
+        if (input.left) dx -= 1;
+        if (input.right) dx += 1;
+
+        boolean isWalking = dx != 0 || dy != 0;
+
+        if (dy < 0) direction = 2;
+        if (dy > 0) direction = 3;
+        if (dx < 0) direction = 0;
+        if (dx > 0) direction = 1;
+
+        dx *= SPEED;
+        dy *= SPEED;
+
+        // X-Bewegung testen
+        hitBox.update((int) (x + dx), y);
+        if (!isBlockedByMap(hitBox)) {
+            x += (int) dx;
+        }
+
+        // Y-Bewegung testen
+        hitBox.update(x, (int) (y + dy));
+        if (!isBlockedByMap(hitBox)) {
+            y += (int) dy;
+        }
+
+        updateHitBoxes();
+
+        AnimationController.AnimState state =
+                isWalking ? AnimationController.AnimState.WALK : AnimationController.AnimState.IDLE;
+        animator.update(delta, state, direction);
+    }
+
+    private boolean isBlockedByMap(HitBox box) {
+        int tx1 = box.x / TileMap.TILE_SIZE;
+        int ty1 = box.y / TileMap.TILE_SIZE;
+        int tx2 = (box.x + box.width - 1) / TileMap.TILE_SIZE;
+        int ty2 = (box.y + box.height - 1) / TileMap.TILE_SIZE;
+
+        return isBlocked(tx1, ty1) || isBlocked(tx2, ty1)
+                || isBlocked(tx1, ty2) || isBlocked(tx2, ty2);
+    }
+
+    private boolean isBlocked(int tileX, int tileY) {
+        TileType t = map.getTile(tileX, tileY);
+        return t == null || t.blocked;
+    }
+
+    public boolean isNearWater() {
+        int tx1 = fishingHitBox.x / TileMap.TILE_SIZE;
+        int ty1 = fishingHitBox.y / TileMap.TILE_SIZE;
+        int tx2 = (fishingHitBox.x + fishingHitBox.width - 1) / TileMap.TILE_SIZE;
+        int ty2 = (fishingHitBox.y + fishingHitBox.height - 1) / TileMap.TILE_SIZE;
+
+        for (int tx = tx1; tx <= tx2; tx++) {
+            for (int ty = ty1; ty <= ty2; ty++) {
+                if (map.getTile(tx, ty) == TileType.WATER) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     public boolean addFish(Fish fish) {
-        if(inventory.size() >= maxSlots) {
+        if (inventory.size() >= maxSlots) {
             return false;
         }
         inventory.add(fish);
         return true;
+    }
+
+    public int sellAllFish() {
+        int total = 0;
+        for (Fish fish : inventory) {
+            total += fish.price;
+        }
+        inventory.clear();
+        gold += total;
+        return total;
     }
 
     public List<Fish> getInventory() {
@@ -63,79 +152,12 @@ public class Player {
         this.gold += gold;
     }
 
-//    public int sellAll() {
-//        int total = 0;
-//        for(Fish f : inventory) {
-//            total += f.price;
-//        }
-//        inventory.clear();
-//        return total;
-//    }
-//
-        public void update(float delta ) {
-        float dx = 0, dy = 0;
-
-
-        if (input.up ) dy -= 1;
-        if(input.down) dy += 1;
-        if(input.left) dx -= 1;
-        if(input.right) dx += 1;
-        boolean isWalking = dx != 0 || dy != 0;
-
-        if(dy < 0) direction = 2;
-        if(dy > 0) direction = 3;
-        if(dx < 0) direction = 0;
-        if(dx > 0) direction = 1;
-        dx *= SPEED;
-        dy *= SPEED;
-
-        hitBox.update((int)(x + dx), y);
-        int tx1 = hitBox.x / TileMap.TILE_SIZE;
-        int ty1 = hitBox.y / TileMap.TILE_SIZE;
-        int tx2 = (hitBox.x + hitBox.width  - 1) / TileMap.TILE_SIZE;
-        int ty2 = (hitBox.y + hitBox.height - 1) / TileMap.TILE_SIZE;
-
-        fishingHitBox.update(x-16, y-16);
-
-        if(!isBlocked(map,tx1,ty1) && !isBlocked(map,tx2,ty1) &&
-                !isBlocked(map,tx1,ty2) && !isBlocked(map,tx2,ty2)) {
-            x += (int)dx;
-        }
-
-        hitBox.update(x, (int)(y + dy));
-        tx1 = hitBox.x / TileMap.TILE_SIZE;
-        ty1 = hitBox.y / TileMap.TILE_SIZE;
-        tx2 = (hitBox.x + hitBox.width  - 1) / TileMap.TILE_SIZE;
-        ty2 = (hitBox.y + hitBox.height - 1) / TileMap.TILE_SIZE;
-
-        if(!isBlocked(map,tx1,ty1) && !isBlocked(map,tx2,ty1) &&
-                !isBlocked(map,tx1,ty2) && !isBlocked(map,tx2,ty2)) {
-            y += (int)dy;
-        }
-
-        hitBox.update(x, y);
-
-
-
-        AnimationController.AnimState state = isWalking ? AnimationController.AnimState.WALK : AnimationController.AnimState.IDLE;
-        animator.update(delta,state,direction);
-
+    public Rod getEquippedRod() {
+        return equippedRod;
     }
 
-    private boolean isBlocked(TileMap map, int tileX, int tileY) {
-        TileType t = map.getTile(tileX, tileY);
-        return t == null || t.blocked;
-    }
-    public boolean isNearWater() {
-        int tx1 = fishingHitBox.x / TileMap.TILE_SIZE;
-        int ty1 = fishingHitBox.y / TileMap.TILE_SIZE;
-        int tx2 = (fishingHitBox.x + fishingHitBox.width  - 1) / TileMap.TILE_SIZE;
-        int ty2 = (fishingHitBox.y + fishingHitBox.height - 1) / TileMap.TILE_SIZE;
-
-        for(int tx = tx1; tx <= tx2; tx++)
-            for(int ty = ty1; ty <= ty2; ty++)
-                if(map.getTile(tx, ty) == TileType.WATER) return true;
-        return false;
+    public void setEquippedRod(Rod rod) {
+        this.equippedRod = rod;
     }
 
     public BufferedImage getCurrentFrame() {
@@ -153,5 +175,8 @@ public class Player {
     public HitBox getHitBox() {
         return hitBox;
     }
-}
 
+    public HitBox getFishingHitBox() {
+        return fishingHitBox;
+    }
+}

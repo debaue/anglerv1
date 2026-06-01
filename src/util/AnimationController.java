@@ -5,12 +5,10 @@ import java.awt.image.BufferedImage;
 public class AnimationController {
     private BufferedImage[][] idleFrames;
     private BufferedImage[][] walkFrames;
-    private BufferedImage[][] fishFrames;
 
     public enum AnimState {
         IDLE,
-        WALK,
-        FISHING
+        WALK
     }
 
     private int direction = 0; // 0 1 2 3, links, rechts, hoch runter
@@ -33,7 +31,6 @@ public class AnimationController {
         int maxFrames = switch(state) {
             case IDLE    -> idleFrames[direction].length;
             case WALK    -> walkFrames[direction].length;
-            case FISHING -> fishFrames[direction].length;
         };
 
         if(frameTimer >= frameSpeed) {
@@ -47,7 +44,6 @@ public class AnimationController {
         return switch(state) {
             case IDLE    -> idleFrames[direction][frameIndex];
             case WALK    -> walkFrames[direction][frameIndex];
-            case FISHING -> fishFrames[direction][frameIndex];
         };
     }
 }

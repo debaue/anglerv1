@@ -57,7 +57,7 @@ public class FishingSystem {
                     int waterLeft   = 40;
                     int waterTop    = 20;
                     int waterRight  = GamePanel.WIDTH  - 40;
-                    int waterBottom = GamePanel.HEIGHT - 180;
+                    int waterBottom = GamePanel.HEIGHT - 190;
 
                     if(mx >= waterLeft && mx <= waterRight &&
                             my >= waterTop  && my <= waterBottom) {

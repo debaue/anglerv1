@@ -12,7 +12,7 @@ public class Game {
 
     public enum GameState {
         EXPLORING,
-        INVENTORY, FISHING_MENU
+        INVENTORY, FISHING_MENU, SHOP
     }
 
     private GameState state = GameState.EXPLORING;
@@ -21,6 +21,8 @@ public class Game {
     private Camera camera;
     private InputHandler input;
     private FishingSystem fishingSystem;
+    private entities.ShopKeeper shopKeeper;
+    private ShopSystem shopSystem;
 
     public Game(InputHandler input) {
         SpriteLoader.init();
@@ -31,6 +33,9 @@ public class Game {
         player = new Player(RodRegistry.getStarter(),input,tileMap);
         camera = new Camera(GamePanel.WIDTH,GamePanel.HEIGHT, tileMap);
         fishingSystem = new FishingSystem(input);
+
+        shopKeeper = new entities.ShopKeeper(500, 300, 48, 64);
+        shopSystem = new ShopSystem();
     }
     public void update(float delta) {
         switch(state) {
@@ -46,11 +51,21 @@ public class Game {
                     state = GameState.INVENTORY;
                     input.inventoryPressed = false;
                 }
+
+
             }
             case INVENTORY -> {
                 if (input.inventoryPressed || input.escape) {
                     state = GameState.EXPLORING;
                     input.inventoryPressed = false;
+                    input.escape = false;
+                }
+            }
+
+            case SHOP -> {
+                shopSystem.update(player, input);
+                if(input.escape) {
+                    state = GameState.EXPLORING;
                     input.escape = false;
                 }
             }
