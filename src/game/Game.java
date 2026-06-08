@@ -34,7 +34,7 @@ public class Game {
         camera = new Camera(GamePanel.WIDTH,GamePanel.HEIGHT, tileMap);
         fishingSystem = new FishingSystem(input);
 
-        shopKeeper = new entities.ShopKeeper(500, 300, 48, 64);
+        shopKeeper = new entities.ShopKeeper(500, 300);
         shopSystem = new ShopSystem();
     }
     public void update(float delta) {
@@ -52,7 +52,10 @@ public class Game {
                     input.inventoryPressed = false;
                 }
 
-
+                if(input.interactPressed && isNearShopKeeper()) {
+                    state = GameState.SHOP;
+                    input.interactPressed = false;
+                }
             }
             case INVENTORY -> {
                 if (input.inventoryPressed || input.escape) {
@@ -97,9 +100,21 @@ public class Game {
         }
     }
 
-    public GameState getState()         { return state; }
-    public Player    getPlayer()        { return player; }
-    public Camera    getCamera()        { return camera; }
-    public TileMap   getTileMap()       { return tileMap; }
-    public FishingSystem getFishing()   { return fishingSystem; }
+    private boolean isNearShopKeeper() {
+        entities.HitBox pk = shopKeeper.getHitBox();
+        entities.HitBox plr = player.getHitBox();
+        int range = 48;
+        return plr.x < pk.x + pk.width  + range &&
+               plr.x + plr.width  > pk.x - range &&
+               plr.y < pk.y + pk.height + range &&
+               plr.y + plr.height > pk.y - range;
+    }
+
+    public GameState        getState()       { return state; }
+    public Player           getPlayer()      { return player; }
+    public Camera           getCamera()      { return camera; }
+    public TileMap          getTileMap()     { return tileMap; }
+    public FishingSystem    getFishing()     { return fishingSystem; }
+    public entities.ShopKeeper getShopKeeper() { return shopKeeper; }
+    public ShopSystem       getShopSystem()  { return shopSystem; }
 }

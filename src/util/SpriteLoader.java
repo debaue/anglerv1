@@ -17,6 +17,8 @@ public class SpriteLoader {
     private static BufferedImage fishingEarthBg;
     private static BufferedImage bobberNormal;
     private static BufferedImage bobberBiting;
+    private static BufferedImage shopKeeper;
+    private static BufferedImage[] fishSprites; // 16 Sprites, 64x64, 4x4 Grid aus 256x256
 
     public static void init() {
         System.out.println("EarthBg: " + SpriteLoader.class.getResource("/fishing/fishing_earth_bg.png"));
@@ -32,6 +34,8 @@ public class SpriteLoader {
         fishingEarthBg= load("/fishing/fishing_screen_earth.png");
         bobberNormal = load("/fishing/bobber_normal.png");
         bobberBiting = load("/fishing/bobber_biting.png");
+        shopKeeper   = load("/npc/shopkeeper.png");
+        fishSprites  = loadTileSet("/fishing/fish_sprites.png", 64); // 256x256 → 4x4 → 64x64 pro Fisch
     }
 
     public static BufferedImage[][] loadSpritesSet(String path, int tileSize) {
@@ -94,6 +98,12 @@ public class SpriteLoader {
     public static BufferedImage[] getGroundtiles() {return ground_tiles;}
     public static BufferedImage getFishingBg() { return fishingBg; }
     public static BufferedImage getFishingEarthBg() { return fishingEarthBg; }
-    public static BufferedImage getBobberNormal() { return bobberNormal; }
-    public static BufferedImage getBobberBiting() { return bobberBiting; }
+    public static BufferedImage getBobberNormal()  { return bobberNormal; }
+    public static BufferedImage getBobberBiting()  { return bobberBiting; }
+    public static BufferedImage getShopKeeper()    { return shopKeeper; }
+
+    public static BufferedImage getFishSprite(int index) {
+        if (fishSprites == null || index < 0 || index >= fishSprites.length) return null;
+        return fishSprites[index];
+    }
 }

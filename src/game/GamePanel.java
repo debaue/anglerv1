@@ -49,6 +49,8 @@ public class GamePanel extends JPanel {
         drawTileLayer(g2, TileType.GRASS, SpriteLoader.getGrassTiles());
         drawTileLayer(g2, TileType.GROUND, SpriteLoader.getGroundtiles());
 
+        drawShopKeeper(g2);
+
         g2.drawImage(
                 game.getPlayer().getCurrentFrame(),
                 game.getPlayer().getX() - game.getCamera().getX(),
@@ -58,7 +60,8 @@ public class GamePanel extends JPanel {
 
         switch (game.getState()) {
             case FISHING_MENU -> drawFishingScreen(g2);
-            case INVENTORY -> drawInventory(g2);
+            case INVENTORY    -> drawInventory(g2);
+            case SHOP         -> drawShop(g2);
         }
     }
 
@@ -185,15 +188,131 @@ public class GamePanel extends JPanel {
             int x = startX + col * (slotSize + gap);
             int y = startY + row * (slotSize + gap);
 
-            g2.setColor(new Color(90, 100, 110));
-            g2.fillRect(x, y, slotSize, slotSize);
             g2.setColor(Color.WHITE);
+            g2.fillRect(x, y, slotSize, slotSize);
+            g2.setColor(new Color(160, 160, 160));
             g2.drawRect(x, y, slotSize, slotSize);
 
             if (i < game.getPlayer().getInventory().size()) {
                 Fish fish = game.getPlayer().getInventory().get(i);
-                g2.drawString(fish.type.name, x + 6, y + 20);
+                java.awt.image.BufferedImage fishImg = util.SpriteLoader.getFishSprite(fish.type.spriteIndex);
+                if (fishImg != null) {
+                    g2.drawImage(fishImg, x + 2, y + 2, slotSize - 4, slotSize - 4, null);
+                }
+                g2.setColor(new Color(0, 0, 0, 140));
+                g2.fillRect(x, y + slotSize - 18, slotSize, 18);
+                g2.setColor(Color.WHITE);
+                g2.setFont(new Font("Arial", Font.BOLD, 9));
+                g2.drawString(fish.type.name, x + 3, y + slotSize - 5);
             }
         }
+    }
+
+    private void drawShopKeeper(Graphics2D g2) {
+        entities.ShopKeeper sk = game.getShopKeeper();
+        int sx = sk.getX() - game.getCamera().getX();
+        int sy = sk.getY() - game.getCamera().getY();
+        int sw = entities.ShopKeeper.SPRITE_W;
+        int sh = entities.ShopKeeper.SPRITE_H;
+
+        java.awt.image.BufferedImage sprite = util.SpriteLoader.getShopKeeper();
+        g2.drawImage(sprite, sx, sy, sw, sh, null);
+    }
+
+    private void drawShop(Graphics2D g2) {
+        g2.setColor(new Color(0, 0, 0, 180));
+        g2.fillRect(0, 0, WIDTH, HEIGHT);
+
+        int panelX = 40;
+        int panelY = 60;
+        int panelW = WIDTH - 80;
+        int panelH = HEIGHT - 120;
+
+        g2.setColor(new Color(40, 50, 40, 240));
+        g2.fillRoundRect(panelX, panelY, panelW, panelH, 20, 20);
+        g2.setColor(new Color(100, 160, 80));
+        g2.drawRoundRect(panelX, panelY, panelW, panelH, 20, 20);
+
+        g2.setColor(Color.WHITE);
+        g2.setFont(new Font("Arial", Font.BOLD, 26));
+        g2.drawString("Shop", panelX + 20, panelY + 36);
+
+        g2.setFont(new Font("Arial", Font.PLAIN, 16));
+        g2.setColor(new Color(255, 220, 80));
+        g2.drawString("Gold: " + game.getPlayer().getGold() + "G", panelX + 20, panelY + 60);
+
+        int leftX = panelX + 20;
+        int itemY  = panelY + 90;
+        int itemW  = (panelW / 2) - 40;
+        int rowH   = 48;
+
+        g2.setColor(Color.WHITE);
+        g2.setFont(new Font("Arial", Font.BOLD, 16));
+        g2.drawString("Kaufen (SPACE / Klick)", leftX, itemY - 10);
+
+        ShopSystem shop = game.getShopSystem();
+        shop.rebuildItemRects(leftX, itemY, itemW, rowH);
+
+        java.util.List<data.ShopItem> items = shop.getItems();
+        for (int i = 0; i < items.size(); i++) {
+            data.ShopItem item = items.get(i);
+            int iy = itemY + i * rowH;
+
+            boolean selected = (i == shop.getSelectedIndex());
+            boolean equipped = game.getPlayer().getEquippedRod() != null &&
+                    game.getPlayer().getEquippedRod().name.equals(item.getName());
+
+            g2.setColor(selected ? new Color(80, 140, 60) : new Color(55, 70, 55));
+            g2.fillRoundRect(leftX, iy, itemW, rowH - 6, 10, 10);
+
+            g2.setColor(selected ? Color.WHITE : new Color(200, 200, 200));
+            g2.setFont(new Font("Arial", Font.BOLD, 15));
+            g2.drawString(item.getName() + (equipped ? " ✓" : ""), leftX + 10, iy + 20);
+            g2.setFont(new Font("Arial", Font.PLAIN, 13));
+            g2.setColor(new Color(255, 220, 80));
+            g2.drawString(item.getPrice() + "G", leftX + 10, iy + 36);
+        }
+        int btnX = leftX;
+        int btnY = itemY + items.size() * rowH + 10;
+        shop.setBuyButton(new java.awt.Rectangle(btnX, btnY, itemW, 32));
+        g2.setColor(new Color(60, 140, 60));
+        g2.fillRoundRect(btnX, btnY, itemW, 32, 8, 8);
+        g2.setColor(Color.WHITE);
+        g2.setFont(new Font("Arial", Font.BOLD, 14));
+        g2.drawString("Kaufen [SPACE]", btnX + 12, btnY + 21);
+
+        int rightX = panelX + panelW / 2 + 20;
+        int rightW = panelW / 2 - 40;
+
+        g2.setColor(Color.WHITE);
+        g2.setFont(new Font("Arial", Font.BOLD, 16));
+        g2.drawString("Inventar", rightX, itemY - 10);
+
+        java.util.List<entities.Fish> inv = game.getPlayer().getInventory();
+        g2.setFont(new Font("Arial", Font.PLAIN, 13));
+        for (int i = 0; i < inv.size(); i++) {
+            entities.Fish fish = inv.get(i);
+            int iy = itemY + i * 22;
+            g2.setColor(new Color(200, 220, 200));
+            g2.drawString(fish.type.name + " – " + fish.weightKg + "kg = " + fish.price + "G",
+                    rightX, iy + 14);
+        }
+        if (inv.isEmpty()) {
+            g2.setColor(new Color(150, 150, 150));
+            g2.drawString("Keine Fische", rightX, itemY + 14);
+        }
+
+        int sellBtnY = panelY + panelH - 50;
+        shop.setSellAllButton(new java.awt.Rectangle(rightX, sellBtnY, rightW, 32));
+        g2.setColor(new Color(160, 80, 40));
+        g2.fillRoundRect(rightX, sellBtnY, rightW, 32, 8, 8);
+        g2.setColor(Color.WHITE);
+        g2.setFont(new Font("Arial", Font.BOLD, 14));
+        g2.drawString("Alle verkaufen", rightX + 10, sellBtnY + 21);
+
+        g2.setColor(new Color(160, 160, 160));
+        g2.setFont(new Font("Arial", Font.PLAIN, 13));
+        g2.drawString("W/S = wählen   SPACE = kaufen   ESC = schließen",
+                panelX + 20, panelY + panelH - 10);
     }
 }

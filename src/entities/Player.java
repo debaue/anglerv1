@@ -68,17 +68,18 @@ public class Player {
         dx *= SPEED;
         dy *= SPEED;
 
-        // X-Bewegung testen
         hitBox.update((int) (x + dx), y);
         if (!isBlockedByMap(hitBox)) {
             x += (int) dx;
         }
 
-        // Y-Bewegung testen
         hitBox.update(x, (int) (y + dy));
         if (!isBlockedByMap(hitBox)) {
             y += (int) dy;
         }
+
+        x = Math.max(0, Math.min(x, map.getCols() * TileMap.TILE_SIZE - hitBox.width));
+        y = Math.max(0, Math.min(y, map.getRows() * TileMap.TILE_SIZE - hitBox.height));
 
         updateHitBoxes();
 

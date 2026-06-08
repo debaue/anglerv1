@@ -48,11 +48,16 @@ public class TileMap {
 
     public int getDualMask(int col, int row, TileType type) {
         int mask = 0;
-        if(getTile(col-1, row-1) == type) mask+=1;
-        if(getTile(col, row-1) == type ) mask+=2;
-        if(getTile(col-1,row) == type ) mask+=4;
-        if(getTile(col,row ) == type ) mask +=8;
+        if(sampleTile(col-1, row-1, type)) mask += 1;
+        if(sampleTile(col,   row-1, type)) mask += 2;
+        if(sampleTile(col-1, row,   type)) mask += 4;
+        if(sampleTile(col,   row,   type)) mask += 8;
         return mask;
+    }
+// jetzt verbindet es sich zur wand
+   private boolean sampleTile(int col, int row, TileType type) {
+        if (col < 0 || col >= cols || row < 0 || row >= rows) return true;
+        return tiles[row][col] == type;
     }
 
 
