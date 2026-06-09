@@ -58,6 +58,8 @@ public class GamePanel extends JPanel {
                 null
         );
 
+        drawHud(g2);
+
         switch (game.getState()) {
             case FISHING_MENU -> drawFishingScreen(g2);
             case INVENTORY    -> drawInventory(g2);
@@ -206,6 +208,74 @@ public class GamePanel extends JPanel {
                 g2.drawString(fish.type.name, x + 3, y + slotSize - 5);
             }
         }
+    }
+
+    private void drawHud(Graphics2D g2) {
+        entities.Player p = game.getPlayer();
+        int pad = 10;
+        int panelH = 48;
+
+        // === OBEN LINKS: Gold + Fische ===
+        g2.setColor(new Color(0, 0, 0, 160));
+        g2.fillRoundRect(pad, pad, 200, panelH, 12, 12);
+
+        // Gold
+        g2.setColor(new Color(255, 210, 50));
+        g2.setFont(new Font("Arial", Font.BOLD, 18));
+        g2.drawString("Gold: " + p.getGold() + "G", pad + 12, pad + 28);
+
+        // Fisch-Slots
+        g2.setColor(new Color(180, 220, 255));
+        g2.setFont(new Font("Arial", Font.PLAIN, 13));
+        g2.drawString("Fische: " + p.getInventory().size() + "/" + p.getMaxSlots(),
+                pad + 12, pad + 44);
+
+        // === OBEN RECHTS: Ausgerüstete Rute ===
+        String rodName = p.getEquippedRod() != null ? p.getEquippedRod().name : "Keine Rute";
+        int rodPanelW = 180;
+        int rodPanelX = WIDTH - rodPanelW - pad;
+
+        g2.setColor(new Color(0, 0, 0, 160));
+        g2.fillRoundRect(rodPanelX, pad, rodPanelW, panelH, 12, 12);
+
+        g2.setColor(new Color(180, 140, 80));
+        g2.setFont(new Font("Arial", Font.BOLD, 13));
+        g2.drawString("Rute", rodPanelX + 12, pad + 20);
+        g2.setColor(Color.WHITE);
+        g2.setFont(new Font("Arial", Font.PLAIN, 14));
+        g2.drawString(rodName, rodPanelX + 12, pad + 40);
+
+        String hint = null;
+        if (game.getState() == Game.GameState.EXPLORING) {
+            if (p.isNearWater())               hint = "[F] Angeln";
+            if (isNearShopKeeperPublic())      hint = "[E] Shop öffnen";
+        }
+        if (hint != null) {
+            FontMetrics fm = g2.getFontMetrics();
+            g2.setFont(new Font("Arial", Font.BOLD, 16));
+            int hw = g2.getFontMetrics().stringWidth(hint) + 24;
+            int hx = (WIDTH - hw) / 2;
+            int hy = HEIGHT - 40;
+            g2.setColor(new Color(0, 0, 0, 180));
+            g2.fillRoundRect(hx, hy, hw, 28, 10, 10);
+            g2.setColor(Color.WHITE);
+            g2.drawString(hint, hx + 12, hy + 20);
+        }
+        g2.setColor(new Color(0, 0, 0, 130));
+        g2.fillRoundRect(WIDTH - 90, HEIGHT - 36, 80, 26, 8, 8);
+        g2.setColor(new Color(200, 200, 200));
+        g2.setFont(new Font("Arial", Font.PLAIN, 12));
+        g2.drawString("[I] Inventar", WIDTH - 83, HEIGHT - 18);
+    }
+
+    private boolean isNearShopKeeperPublic() {
+        entities.HitBox pk  = game.getShopKeeper().getHitBox();
+        entities.HitBox plr = game.getPlayer().getHitBox();
+        int range = 48;
+        return plr.x < pk.x + pk.width  + range &&
+               plr.x + plr.width  > pk.x - range &&
+               plr.y < pk.y + pk.height + range &&
+               plr.y + plr.height > pk.y - range;
     }
 
     private void drawShopKeeper(Graphics2D g2) {
