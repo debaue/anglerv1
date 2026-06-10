@@ -3,10 +3,6 @@ package world;
 import java.awt.*;
 
 public enum TileType {
-//    EARTH(0, false, new Color(140,100,60)),
-//    GRASS(1,false, new Color(80,160,60)),
-//    WATER(2,true, new Color(30,100,160));
-
     GROUND(0,false, false, new int[]{12,15,8,9,0,11,14,7,13,4,1,10,3,2,5,6}),
     WATER(2, true,true,  new int[]{12,15,8,9,0,11,14,7,13,4,1,10,3,2,5,6}),
     GRASS(1,false, false, new int[]{12,15,8,9,0,11,14,7,13,4,1,10,3,2,5,6});

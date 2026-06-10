@@ -64,6 +64,7 @@ public class GamePanel extends JPanel {
             case FISHING_MENU -> drawFishingScreen(g2);
             case INVENTORY    -> drawInventory(g2);
             case SHOP         -> drawShop(g2);
+            case FISH_BOOK    -> drawFishBook(g2);
         }
     }
 
@@ -215,35 +216,47 @@ public class GamePanel extends JPanel {
         int pad = 10;
         int panelH = 48;
 
-        // === OBEN LINKS: Gold + Fische ===
         g2.setColor(new Color(0, 0, 0, 160));
         g2.fillRoundRect(pad, pad, 200, panelH, 12, 12);
 
-        // Gold
         g2.setColor(new Color(255, 210, 50));
         g2.setFont(new Font("Arial", Font.BOLD, 18));
         g2.drawString("Gold: " + p.getGold() + "G", pad + 12, pad + 28);
 
-        // Fisch-Slots
         g2.setColor(new Color(180, 220, 255));
         g2.setFont(new Font("Arial", Font.PLAIN, 13));
         g2.drawString("Fische: " + p.getInventory().size() + "/" + p.getMaxSlots(),
                 pad + 12, pad + 44);
+        String rodName  = p.getEquippedRod()  != null ? p.getEquippedRod().name  : "Keine Rute";
+        String baitName = p.getEquippedBait() != null ? p.getEquippedBait().name : "Kein Köder";
+        String baitCountStr = p.getBaitCount() < 0 ? "∞" : "x" + p.getBaitCount();
 
-        // === OBEN RECHTS: Ausgerüstete Rute ===
-        String rodName = p.getEquippedRod() != null ? p.getEquippedRod().name : "Keine Rute";
-        int rodPanelW = 180;
+        int rodPanelW = 210;
+        int rodPanelH = 68;
         int rodPanelX = WIDTH - rodPanelW - pad;
 
         g2.setColor(new Color(0, 0, 0, 160));
-        g2.fillRoundRect(rodPanelX, pad, rodPanelW, panelH, 12, 12);
+        g2.fillRoundRect(rodPanelX, pad, rodPanelW, rodPanelH, 12, 12);
 
         g2.setColor(new Color(180, 140, 80));
-        g2.setFont(new Font("Arial", Font.BOLD, 13));
-        g2.drawString("Rute", rodPanelX + 12, pad + 20);
+        g2.setFont(new Font("Arial", Font.BOLD, 12));
+        g2.drawString("Rute:", rodPanelX + 10, pad + 18);
         g2.setColor(Color.WHITE);
-        g2.setFont(new Font("Arial", Font.PLAIN, 14));
-        g2.drawString(rodName, rodPanelX + 12, pad + 40);
+        g2.setFont(new Font("Arial", Font.PLAIN, 13));
+        g2.drawString(rodName, rodPanelX + 55, pad + 18);
+
+        boolean hasUpgradedBait = p.getBaitCount() > 0;
+        g2.setColor(hasUpgradedBait ? new Color(120, 220, 120) : new Color(160, 160, 160));
+        g2.setFont(new Font("Arial", Font.BOLD, 12));
+        g2.drawString("Köder:", rodPanelX + 10, pad + 38);
+        g2.setColor(hasUpgradedBait ? new Color(180, 255, 180) : new Color(200, 200, 200));
+        g2.setFont(new Font("Arial", Font.PLAIN, 13));
+        g2.drawString(baitName + " " + baitCountStr, rodPanelX + 60, pad + 38);
+
+        g2.setColor(new Color(100, 100, 100));
+        g2.setFont(new Font("Arial", Font.PLAIN, 10));
+        g2.drawString(hasUpgradedBait ? "+" + (int)(p.getEquippedBait().rarityBonus * 100) + "% seltene Fische" : "kein Bonus",
+                rodPanelX + 10, pad + 56);
 
         String hint = null;
         if (game.getState() == Game.GameState.EXPLORING) {
@@ -266,6 +279,12 @@ public class GamePanel extends JPanel {
         g2.setColor(new Color(200, 200, 200));
         g2.setFont(new Font("Arial", Font.PLAIN, 12));
         g2.drawString("[I] Inventar", WIDTH - 83, HEIGHT - 18);
+
+        g2.setColor(new Color(0, 0, 0, 130));
+        g2.fillRoundRect(WIDTH - 90, HEIGHT - 68, 80, 26, 8, 8);
+        g2.setColor(new Color(180, 220, 180));
+        g2.setFont(new Font("Arial", Font.PLAIN, 12));
+        g2.drawString("[B] Fischbuch", WIDTH - 88, HEIGHT - 50);
     }
 
     private boolean isNearShopKeeperPublic() {
@@ -329,18 +348,24 @@ public class GamePanel extends JPanel {
             int iy = itemY + i * rowH;
 
             boolean selected = (i == shop.getSelectedIndex());
-            boolean equipped = game.getPlayer().getEquippedRod() != null &&
-                    game.getPlayer().getEquippedRod().name.equals(item.getName());
+            boolean isRodItem  = item.getType() == data.ShopItem.Type.ROD;
+            boolean isBaitItem = item.getType() == data.ShopItem.Type.BAIT;
+            boolean equippedRod  = isRodItem  && game.getPlayer().getEquippedRod()  != null
+                    && game.getPlayer().getEquippedRod().name.equals(item.getName());
+            boolean equippedBait = isBaitItem && game.getPlayer().getEquippedBait() != null
+                    && game.getPlayer().getEquippedBait().name.equals(item.getName())
+                    && game.getPlayer().getBaitCount() > 0;
+            String badge = equippedRod ? " ✓" : (equippedBait ? " x" + game.getPlayer().getBaitCount() : "");
 
             g2.setColor(selected ? new Color(80, 140, 60) : new Color(55, 70, 55));
             g2.fillRoundRect(leftX, iy, itemW, rowH - 6, 10, 10);
 
             g2.setColor(selected ? Color.WHITE : new Color(200, 200, 200));
             g2.setFont(new Font("Arial", Font.BOLD, 15));
-            g2.drawString(item.getName() + (equipped ? " ✓" : ""), leftX + 10, iy + 20);
+            g2.drawString(item.getName() + badge, leftX + 10, iy + 20);
             g2.setFont(new Font("Arial", Font.PLAIN, 13));
             g2.setColor(new Color(255, 220, 80));
-            g2.drawString(item.getPrice() + "G", leftX + 10, iy + 36);
+            g2.drawString(item.getPrice() + "G" + (isBaitItem ? "  (5x)" : ""), leftX + 10, iy + 36);
         }
         int btnX = leftX;
         int btnY = itemY + items.size() * rowH + 10;
@@ -384,5 +409,78 @@ public class GamePanel extends JPanel {
         g2.setFont(new Font("Arial", Font.PLAIN, 13));
         g2.drawString("W/S = wählen   SPACE = kaufen   ESC = schließen",
                 panelX + 20, panelY + panelH - 10);
+    }
+
+    private void drawFishBook(Graphics2D g2) {
+        g2.setColor(new Color(0, 0, 0, 180));
+        g2.fillRect(0, 0, WIDTH, HEIGHT);
+
+        int panelX = 40;
+        int panelY = 40;
+        int panelW = WIDTH - 80;
+        int panelH = HEIGHT - 80;
+
+        g2.setColor(new Color(30, 50, 35, 245));
+        g2.fillRoundRect(panelX, panelY, panelW, panelH, 20, 20);
+        g2.setColor(new Color(80, 160, 90));
+        g2.drawRoundRect(panelX, panelY, panelW, panelH, 20, 20);
+
+        g2.setColor(Color.WHITE);
+        g2.setFont(new Font("Arial", Font.BOLD, 24));
+        g2.drawString("Fischbuch", panelX + 20, panelY + 35);
+
+        java.util.Map<String, entities.FishBookEntry> book = game.getPlayer().getFishBook();
+
+        if (book.isEmpty()) {
+            g2.setColor(new Color(160, 160, 160));
+            g2.setFont(new Font("Arial", Font.ITALIC, 16));
+            g2.drawString("Noch keine Fische gefangen.", panelX + 20, panelY + 80);
+        } else {
+            int colW  = (panelW - 40) / 2;
+            int rowH  = 52;
+            int startY = panelY + 60;
+            int i = 0;
+            for (entities.FishBookEntry entry : book.values()) {
+                int col = i % 2;
+                int row = i / 2;
+                int ex  = panelX + 20 + col * (colW + 10);
+                int ey  = startY + row * rowH;
+
+                if (ey + rowH > panelY + panelH - 30) break;
+
+                boolean isNew = entry.getCaughtCount() == 1;
+                g2.setColor(isNew ? new Color(60, 120, 70) : new Color(45, 65, 50));
+                g2.fillRoundRect(ex, ey, colW - 10, rowH - 6, 10, 10);
+
+                BufferedImage sprite = util.SpriteLoader.getFishSprite(
+                        data.FishRegistry.findByName(entry.getFishName()) != null
+                        ? data.FishRegistry.findByName(entry.getFishName()).spriteIndex : -1);
+
+                if (sprite != null) {
+                    int imgSize = rowH - 10;
+                    g2.setColor(Color.WHITE);
+                    g2.fillRect(ex + 4, ey + 2, imgSize, imgSize);
+                    g2.drawImage(sprite, ex + 4, ey + 2, imgSize, imgSize, null);
+                }
+
+                int tx = ex + rowH + 2;
+                g2.setColor(Color.WHITE);
+                g2.setFont(new Font("Arial", Font.BOLD, 13));
+                g2.drawString(entry.getFishName(), tx, ey + 16);
+
+                g2.setFont(new Font("Arial", Font.PLAIN, 11));
+                g2.setColor(new Color(200, 220, 200));
+                g2.drawString("Gefangen: " + entry.getCaughtCount() + "x", tx, ey + 29);
+                g2.drawString(
+                        String.format("Schwerste: %.2fkg   Längste: %.1fcm",
+                                entry.getHeaviestWeight(), entry.getLongestLength()),
+                        tx, ey + 42);
+                i++;
+            }
+        }
+
+        g2.setColor(new Color(160, 160, 160));
+        g2.setFont(new Font("Arial", Font.PLAIN, 13));
+        g2.drawString("[B] / ESC = schließen", panelX + 20, panelY + panelH - 10);
     }
 }

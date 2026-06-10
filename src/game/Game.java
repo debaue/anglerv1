@@ -12,7 +12,7 @@ public class Game {
 
     public enum GameState {
         EXPLORING,
-        INVENTORY, FISHING_MENU, SHOP
+        INVENTORY, FISHING_MENU, SHOP, FISH_BOOK
     }
 
     private GameState state = GameState.EXPLORING;
@@ -51,6 +51,10 @@ public class Game {
                     state = GameState.INVENTORY;
                     input.inventoryPressed = false;
                 }
+                if(input.fishBookPressed) {
+                    state = GameState.FISH_BOOK;
+                    input.fishBookPressed = false;
+                }
 
                 if(input.interactPressed && isNearShopKeeper()) {
                     state = GameState.SHOP;
@@ -64,6 +68,13 @@ public class Game {
                     input.escape = false;
                 }
             }
+            case FISH_BOOK -> {
+                if (input.fishBookPressed || input.escape) {
+                    state = GameState.EXPLORING;
+                    input.fishBookPressed = false;
+                    input.escape = false;
+                }
+            }
 
             case SHOP -> {
                 shopSystem.update(player, input);
@@ -74,15 +85,13 @@ public class Game {
             }
 
             case FISHING_MENU -> {
-                fishingSystem.update(delta);
+                fishingSystem.update(delta, player);
 
                 if(fishingSystem.getState() == FishingSystem.FishState.CASTING
                         && fishingSystem.isSuccess()) {
                     Fish caught = fishingSystem.collectCaughtFish();
-                    System.out.println("Caught: " + (caught != null ? caught.type.name : "null"));
                     if(caught != null) {
-                        boolean added = player.addFish(caught);
-                        System.out.println("Added: " + added + " InvSize: " + player.getInventory().size());
+                        player.addFish(caught);
                     }
                     fishingSystem.resetSuccess();
                 }

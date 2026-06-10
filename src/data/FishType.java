@@ -4,23 +4,19 @@ public class FishType {
     public final String name;
     public final float minKg;
     public final float maxKg;
+    public final float minCm;
+    public final float maxCm;
     public final int basePrice;
     public final Rarity rarity;
-    public final int spriteIndex; // Position im 4x4 Spritesheet (0-15)
+    public final int spriteIndex;
 
-    public FishType(String name, float minKg, float maxKg, int basePrice, Rarity rarity) {
+    public FishType(String name, float minKg, float maxKg, float minCm, float maxCm,
+                    int basePrice, Rarity rarity, int spriteIndex) {
         this.name = name;
         this.minKg = minKg;
         this.maxKg = maxKg;
-        this.basePrice = basePrice;
-        this.rarity = rarity;
-        this.spriteIndex = -1;
-    }
-
-    public FishType(String name, float minKg, float maxKg, int basePrice, Rarity rarity, int spriteIndex) {
-        this.name = name;
-        this.minKg = minKg;
-        this.maxKg = maxKg;
+        this.minCm = minCm;
+        this.maxCm = maxCm;
         this.basePrice = basePrice;
         this.rarity = rarity;
         this.spriteIndex = spriteIndex;

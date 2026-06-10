@@ -1,5 +1,6 @@
 package entities;
 
+import data.BaitRegistry;
 import util.AnimationController;
 import util.InputHandler;
 import world.TileMap;
@@ -7,14 +8,19 @@ import world.TileType;
 
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Player {
 
     private int gold;
     private Rod equippedRod;
+    private Bait equippedBait;
+    private int baitCount;
     private List<Fish> inventory = new ArrayList<>();
     private int maxSlots;
+    private final Map<String, FishBookEntry> fishBook = new LinkedHashMap<>();
 
     private final int SPEED = 3;
     private AnimationController animator;
@@ -32,6 +38,8 @@ public class Player {
     public Player(Rod startRod, InputHandler input, TileMap map) {
         this.gold = 0;
         this.equippedRod = startRod;
+        this.equippedBait = BaitRegistry.getStarter();
+        this.baitCount = -1; // -1 = unbegrenzt (Standard-Köder)
         this.maxSlots = 10;
         this.animator = new AnimationController();
 
@@ -120,6 +128,7 @@ public class Player {
     }
 
     public boolean addFish(Fish fish) {
+        fishBook.computeIfAbsent(fish.type.name, FishBookEntry::new).registerCatch(fish);
         if (inventory.size() >= maxSlots) {
             return false;
         }
@@ -161,6 +170,32 @@ public class Player {
         this.equippedRod = rod;
     }
 
+    public Bait getEquippedBait() {
+        return equippedBait;
+    }
+
+    public void setEquippedBait(Bait bait) {
+        this.equippedBait = bait;
+    }
+
+    public void addBait(Bait bait, int count) {
+        this.equippedBait = bait;
+        this.baitCount = count;
+    }
+
+    public int getBaitCount() {
+        return baitCount;
+    }
+
+    public void consumeBait() {
+        if (baitCount < 0) return;
+        baitCount--;
+        if (baitCount <= 0) {
+            equippedBait = BaitRegistry.getStarter();
+            baitCount = -1;
+        }
+    }
+
     public BufferedImage getCurrentFrame() {
         return animator.getCurrentFrame();
     }
@@ -177,7 +212,7 @@ public class Player {
         return hitBox;
     }
 
-    public HitBox getFishingHitBox() {
-        return fishingHitBox;
+    public Map<String, FishBookEntry> getFishBook() {
+        return fishBook;
     }
 }

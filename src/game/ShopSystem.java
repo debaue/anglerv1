@@ -1,7 +1,9 @@
 package game;
 
 
+import data.BaitRegistry;
 import data.ShopItem;
+import entities.Bait;
 import entities.Player;
 import entities.Rod;
 import util.InputHandler;
@@ -30,6 +32,16 @@ import java.util.List;
                         rod.price,
                         ShopItem.Type.ROD,
                         rod
+                ));
+            }
+            for (Bait bait : BaitRegistry.ALL) {
+                if (bait.price == 0) continue;
+                items.add(new ShopItem(
+                        "bait_" + bait.name.toLowerCase().replace(" ", "_").replace("-", "_"),
+                        bait.name,
+                        bait.price,
+                        ShopItem.Type.BAIT,
+                        bait
                 ));
             }
         }
@@ -82,14 +94,19 @@ import java.util.List;
 
             if (item.getType() == ShopItem.Type.ROD) {
                 Rod rod = (Rod) item.getPayload();
-
                 if (player.getEquippedRod() != null &&
-                        player.getEquippedRod().name.equals(rod.name)) {
+                        rod.tier <= player.getEquippedRod().tier) {
                     return false;
                 }
-
                 player.addGold(-item.getPrice());
                 player.setEquippedRod(rod);
+                return true;
+            }
+
+            if (item.getType() == ShopItem.Type.BAIT) {
+                Bait bait = (Bait) item.getPayload();
+                player.addGold(-item.getPrice());
+                player.addBait(bait, 5);
                 return true;
             }
 

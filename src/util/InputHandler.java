@@ -15,6 +15,7 @@ public class InputHandler implements KeyListener, MouseListener {
     public boolean escape;
     public boolean inventoryPressed;
     public boolean interactPressed;
+    public boolean fishBookPressed;
     public int mouseX, mouseY;
     public boolean mouseClicked;
     public boolean spacePressed;
@@ -32,6 +33,7 @@ public class InputHandler implements KeyListener, MouseListener {
             case KeyEvent.VK_I -> inventoryPressed = true;
             case KeyEvent.VK_SPACE -> spacePressed = true;
             case KeyEvent.VK_E -> interactPressed = true;
+            case KeyEvent.VK_B -> fishBookPressed = true;
         }
     }
 
@@ -47,6 +49,7 @@ public class InputHandler implements KeyListener, MouseListener {
             case KeyEvent.VK_I -> inventoryPressed = false;
             case KeyEvent.VK_SPACE -> spacePressed = false;
             case KeyEvent.VK_E -> interactPressed = false;
+            case KeyEvent.VK_B -> fishBookPressed = false;
         }
     }
 

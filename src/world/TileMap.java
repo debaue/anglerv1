@@ -54,8 +54,8 @@ public class TileMap {
         if(sampleTile(col,   row,   type)) mask += 8;
         return mask;
     }
-// jetzt verbindet es sich zur wand
-   private boolean sampleTile(int col, int row, TileType type) {
+
+    private boolean sampleTile(int col, int row, TileType type) {
         if (col < 0 || col >= cols || row < 0 || row >= rows) return true;
         return tiles[row][col] == type;
     }

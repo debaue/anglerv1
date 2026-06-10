@@ -18,13 +18,9 @@ public class SpriteLoader {
     private static BufferedImage bobberNormal;
     private static BufferedImage bobberBiting;
     private static BufferedImage shopKeeper;
-    private static BufferedImage[] fishSprites; // 16 Sprites, 64x64, 4x4 Grid aus 256x256
+    private static BufferedImage[] fishSprites;
 
     public static void init() {
-        System.out.println("EarthBg: " + SpriteLoader.class.getResource("/fishing/fishing_earth_bg.png"));
-        System.out.println("FishingBg: " + SpriteLoader.class.getResource("/fishing/fishing_screen.png"));
-        System.out.println("BobberNormal: " + SpriteLoader.class.getResource("/fishing/bobber_normal.png"));
-
         idle_frames  = loadSpritesSet("/player-sprites/Character_Idle_Angle.png", 48);
         walk_frames  = loadSpritesSet("/player-sprites/Character_Walk_Angle.png", 48);
         ground_tiles  = loadTileSet("/tileset-sprites/Tileset_Ground.png", 32);
@@ -35,7 +31,7 @@ public class SpriteLoader {
         bobberNormal = load("/fishing/bobber_normal.png");
         bobberBiting = load("/fishing/bobber_biting.png");
         shopKeeper   = load("/npc/shopkeeper.png");
-        fishSprites  = loadTileSet("/fishing/fish_sprites.png", 64); // 256x256 → 4x4 → 64x64 pro Fisch
+        fishSprites  = loadTileSet("/fishing/fish_sprites.png", 64);
     }
 
     public static BufferedImage[][] loadSpritesSet(String path, int tileSize) {
@@ -82,7 +78,7 @@ public class SpriteLoader {
     public static BufferedImage load(String path) {
         try {
             return ImageIO.read(
-                    SpriteLoader.class.getResource(path) // weil wir es im resource directory haben können wir es nicht mit Imageio read new File lesen
+                    SpriteLoader.class.getResource(path)
             );
         } catch (Exception e) {
             System.err.println("Sprite nicht gefunden: " + path);

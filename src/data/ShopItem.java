@@ -3,6 +3,7 @@ package data;
 public class ShopItem {
     public enum Type {
         ROD,
+        BAIT,
         GENERIC
     }
 

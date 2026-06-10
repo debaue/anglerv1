@@ -3,8 +3,10 @@ package game;
 import data.FishRegistry;
 import data.FishType;
 import entities.Fish;
+import entities.Player;
 import util.InputHandler;
 
+import java.time.LocalDateTime;
 import java.util.Random;
 
 public class FishingSystem {
@@ -47,11 +49,10 @@ public class FishingSystem {
         this.input = input;
     }
 
-    public void update(float delta) {
+    public void update(float delta, Player player) {
         switch(state) {
             case CASTING -> {
                 if(input.mouseClicked) {
-                    System.out.println("mouseClicked erkannt: " + input.mouseX + " " + input.mouseY);
                     int mx = input.mouseX;
                     int my = input.mouseY;
                     int waterLeft   = 40;
@@ -83,7 +84,8 @@ public class FishingSystem {
                 biteTimer += delta;
                 if(input.spacePressed) {
                     input.spacePressed = false;
-                    startMinigame();
+                    player.consumeBait();
+                    startMinigame(player);
                 } else if(biteTimer >= BITE_WINDOW) {
                     waitTimer  = 0f;
                     waitTarget = 2f + random.nextFloat() * 3f;
@@ -126,19 +128,29 @@ public class FishingSystem {
         }
     }
 
-    private void startMinigame() {
+    private void startMinigame(Player player) {
         hits      = 0;
         misses    = 0;
         markerX   = 0;
         markerDir = 1;
-        caughtType = FishRegistry.getRandom();
 
+        float rarityBonus = player.getEquippedBait() != null ? player.getEquippedBait().rarityBonus : 0f;
+        caughtType = FishRegistry.getRandom(rarityBonus);
+
+        float baseGreen;
+        float baseSpeed;
         switch(caughtType.rarity) {
-            case COMMON    -> { greenWidth = 120f; markerSpeed = 200f; }
-            case UNCOMMON  -> { greenWidth = 90f;  markerSpeed = 260f; }
-            case RARE      -> { greenWidth = 60f;  markerSpeed = 300f; }
-            case LEGENDARY -> { greenWidth = 35f;  markerSpeed = 400f; }
+            case COMMON    -> { baseGreen = 120f; baseSpeed = 200f; }
+            case UNCOMMON  -> { baseGreen = 90f;  baseSpeed = 260f; }
+            case RARE      -> { baseGreen = 60f;  baseSpeed = 300f; }
+            default        -> { baseGreen = 35f;  baseSpeed = 400f; }
         }
+
+        float stability  = player.getEquippedRod() != null ? player.getEquippedRod().stability  : 0.6f;
+        float speedMalus = player.getEquippedRod() != null ? player.getEquippedRod().speedMalus : 0f;
+
+        greenWidth  = baseGreen * stability;
+        markerSpeed = baseSpeed * (1f - speedMalus);
 
         greenStart = (BAR_WIDTH / 2f) - (greenWidth / 2f);
         state = FishState.MINIGAME;
@@ -158,9 +170,12 @@ public class FishingSystem {
 
     public Fish collectCaughtFish() {
         if(success && caughtType != null) {
-            float weight = caughtType.minKg + random.nextFloat() * (caughtType.maxKg - caughtType.minKg);
-            Fish fish = new Fish(caughtType, weight);
-            return fish;
+            float sizeRatio = random.nextFloat();
+            float wRatio = Math.clamp(sizeRatio + (random.nextFloat() - 0.5f) * 0.15f, 0f, 1f);
+            float lRatio = Math.clamp(sizeRatio + (random.nextFloat() - 0.5f) * 0.15f, 0f, 1f);
+            float weight   = caughtType.minKg + wRatio * (caughtType.maxKg - caughtType.minKg);
+            float lengthCm = caughtType.minCm + lRatio * (caughtType.maxCm - caughtType.minCm);
+            return new Fish(caughtType, weight, lengthCm, LocalDateTime.now());
         }
         return null;
     }
