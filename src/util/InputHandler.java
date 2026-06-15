@@ -19,6 +19,9 @@ public class InputHandler implements KeyListener, MouseListener {
     public int mouseX, mouseY;
     public boolean mouseClicked;
     public boolean spacePressed;
+    public boolean enterPressed;
+    public boolean backspacePressed;
+    public char lastTyped = 0;
 
     @Override
     public void keyPressed(KeyEvent e) {
@@ -34,6 +37,8 @@ public class InputHandler implements KeyListener, MouseListener {
             case KeyEvent.VK_SPACE -> spacePressed = true;
             case KeyEvent.VK_E -> interactPressed = true;
             case KeyEvent.VK_B -> fishBookPressed = true;
+            case KeyEvent.VK_ENTER -> enterPressed = true;
+            case KeyEvent.VK_BACK_SPACE -> backspacePressed = true;
         }
     }
 
@@ -50,11 +55,18 @@ public class InputHandler implements KeyListener, MouseListener {
             case KeyEvent.VK_SPACE -> spacePressed = false;
             case KeyEvent.VK_E -> interactPressed = false;
             case KeyEvent.VK_B -> fishBookPressed = false;
+            case KeyEvent.VK_ENTER -> enterPressed = false;
+            case KeyEvent.VK_BACK_SPACE -> backspacePressed = false;
         }
     }
 
     @Override
-    public void keyTyped(KeyEvent e) {}
+    public void keyTyped(KeyEvent e) {
+        char c = e.getKeyChar();
+        if (c != KeyEvent.CHAR_UNDEFINED && c >= 32 && c < 127) {
+            lastTyped = c;
+        }
+    }
 
     @Override
     public void mouseClicked(MouseEvent e) {

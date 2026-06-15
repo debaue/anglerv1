@@ -5,6 +5,9 @@ import data.FishType;
 import entities.Fish;
 import entities.Player;
 import util.InputHandler;
+import world.FishingZone;
+import world.TileMap;
+import world.ZoneRegistry;
 
 import java.time.LocalDateTime;
 import java.util.Random;
@@ -41,9 +44,11 @@ public class FishingSystem {
     private static final int MAX_MISSES = 2;
     private static final int BAR_WIDTH = 400;
 
-    private FishType caughtType;
-    private boolean  success;
-    private float    resultTimer;
+    private FishType    caughtType;
+    private Fish        lastCaughtFish;
+    private FishingZone currentZone = ZoneRegistry.STARTTEICH;
+    private boolean     success;
+    private float       resultTimer;
 
     public FishingSystem(InputHandler input) {
         this.input = input;
@@ -105,6 +110,7 @@ public class FishingSystem {
                         if(hits >= MAX_HITS) {
                             success = true;
                             resultTimer = 0f;
+                            lastCaughtFish = generateFish();
                             state = FishState.RESULT;
                         }
                     } else {
@@ -134,8 +140,12 @@ public class FishingSystem {
         markerX   = 0;
         markerDir = 1;
 
-        float rarityBonus = player.getEquippedBait() != null ? player.getEquippedBait().rarityBonus : 0f;
-        caughtType = FishRegistry.getRandom(rarityBonus);
+        int col = player.getX() / TileMap.TILE_SIZE;
+        int row = player.getY() / TileMap.TILE_SIZE;
+        currentZone = ZoneRegistry.getZoneAtTile(col, row);
+
+        float baitBonus = player.getEquippedBait() != null ? player.getEquippedBait().rarityBonus : 0f;
+        caughtType = FishRegistry.getRandom(currentZone, baitBonus);
 
         float baseGreen;
         float baseSpeed;
@@ -168,42 +178,50 @@ public class FishingSystem {
         caughtType = null;
     }
 
+    private Fish generateFish() {
+        if (caughtType == null) return null;
+        float sizeRatio = random.nextFloat();
+        float wRatio = Math.clamp(sizeRatio + (random.nextFloat() - 0.5f) * 0.15f, 0f, 1f);
+        float lRatio = Math.clamp(sizeRatio + (random.nextFloat() - 0.5f) * 0.15f, 0f, 1f);
+        float weight   = caughtType.minKg + wRatio * (caughtType.maxKg - caughtType.minKg);
+        float lengthCm = caughtType.minCm + lRatio * (caughtType.maxCm - caughtType.minCm);
+        return new Fish(caughtType, weight, lengthCm, LocalDateTime.now());
+    }
+
     public Fish collectCaughtFish() {
-        if(success && caughtType != null) {
-            float sizeRatio = random.nextFloat();
-            float wRatio = Math.clamp(sizeRatio + (random.nextFloat() - 0.5f) * 0.15f, 0f, 1f);
-            float lRatio = Math.clamp(sizeRatio + (random.nextFloat() - 0.5f) * 0.15f, 0f, 1f);
-            float weight   = caughtType.minKg + wRatio * (caughtType.maxKg - caughtType.minKg);
-            float lengthCm = caughtType.minCm + lRatio * (caughtType.maxCm - caughtType.minCm);
-            return new Fish(caughtType, weight, lengthCm, LocalDateTime.now());
-        }
-        return null;
+        Fish f = lastCaughtFish;
+        lastCaughtFish = null;
+        return f;
     }
 
     public void fullReset() {
-        state      = FishState.CASTING;
-        hits       = 0;
-        misses     = 0;
-        markerX    = 0;
-        markerDir  = 1;
-        success    = false;
-        caughtType = null;
-        waitTimer  = 0f;
-        biteTimer  = 0f;
-        bobberX    = 0;
-        bobberY    = 0;
+        state          = FishState.CASTING;
+        hits           = 0;
+        misses         = 0;
+        markerX        = 0;
+        markerDir      = 1;
+        success        = false;
+        caughtType     = null;
+        lastCaughtFish = null;
+        waitTimer      = 0f;
+        biteTimer      = 0f;
+        bobberX        = 0;
+        bobberY        = 0;
     }
 
-    public FishState getState()      { return state; }
-    public int   getBobberX()        { return bobberX; }
-    public int   getBobberY()        { return bobberY; }
-    public float getBiteTimer()      { return biteTimer; }
-    public float getMarkerX()        { return markerX; }
-    public float getGreenStart()     { return greenStart; }
-    public float getGreenWidth()     { return greenWidth; }
-    public int   getHits()           { return hits; }
-    public int   getMisses()         { return misses; }
-    public boolean isSuccess()       { return success; }
-    public int   getBarWidth()       { return BAR_WIDTH; }
+    public FishState    getState()          { return state; }
+    public int          getBobberX()        { return bobberX; }
+    public int          getBobberY()        { return bobberY; }
+    public float        getBiteTimer()      { return biteTimer; }
+    public float        getMarkerX()        { return markerX; }
+    public float        getGreenStart()     { return greenStart; }
+    public float        getGreenWidth()     { return greenWidth; }
+    public int          getHits()           { return hits; }
+    public int          getMisses()         { return misses; }
+    public boolean      isSuccess()         { return success; }
+    public int          getBarWidth()       { return BAR_WIDTH; }
+    public float        getResultTimer()    { return resultTimer; }
+    public Fish         getLastCaughtFish() { return lastCaughtFish; }
+    public FishingZone  getCurrentZone()    { return currentZone; }
 }
 

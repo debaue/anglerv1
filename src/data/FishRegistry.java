@@ -1,5 +1,8 @@
 package data;
 
+import world.FishingZone;
+import world.ZoneRegistry;
+
 public class FishRegistry {
     public static final FishType[] ALL = {
         new FishType("Karpfen",      1.0f,   8.0f,  30f,  80f,    5, Rarity.COMMON,      0),
@@ -28,29 +31,29 @@ public class FishRegistry {
     }
 
     public static FishType getRandom() {
-        return getRandom(0f);
+        return getRandom(ZoneRegistry.STARTTEICH, 0f);
     }
 
-    public static FishType getRandom(float rarityBonus) {
-        float totalWeight = 0;
-        for (FishType ft : ALL) totalWeight += effectiveWeight(ft, rarityBonus);
+    public static FishType getRandom(FishingZone zone, float baitBonus) {
+        float total = 0;
+        for (FishType ft : ALL) total += effectiveWeight(ft, zone, baitBonus);
 
-        float roll = (float)(Math.random() * totalWeight);
+        float roll = (float)(Math.random() * total);
         float acc  = 0;
         for (FishType ft : ALL) {
-            acc += effectiveWeight(ft, rarityBonus);
+            acc += effectiveWeight(ft, zone, baitBonus);
             if (roll < acc) return ft;
         }
         return ALL[0];
     }
 
-    private static float effectiveWeight(FishType ft, float rarityBonus) {
-        float multiplier = switch (ft.rarity) {
-            case COMMON    -> 1f;
-            case UNCOMMON  -> 1f + rarityBonus;
-            case RARE      -> 1f + rarityBonus * 2f;
-            case LEGENDARY -> 1f + rarityBonus * 4f;
+    private static float effectiveWeight(FishType ft, FishingZone zone, float baitBonus) {
+        float zoneMul = switch (ft.rarity) {
+            case COMMON    -> zone.commonMul;
+            case UNCOMMON  -> zone.uncommonMul * (1f + baitBonus);
+            case RARE      -> zone.rareMul     * (1f + baitBonus * 2f);
+            case LEGENDARY -> zone.legendaryMul * (1f + baitBonus * 4f);
         };
-        return ft.rarity.spawnHeight * multiplier;
+        return Math.max(0.1f, ft.rarity.spawnHeight * zoneMul);
     }
 }

@@ -4,7 +4,12 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 
+import data.FishRegistry;
 import entities.Fish;
+import entities.FishBookEntry;
+import entities.HitBox;
+import entities.Player;
+import entities.ShopKeeper;
 import util.InputHandler;
 import util.SpriteLoader;
 import world.TileType;
@@ -93,6 +98,11 @@ public class GamePanel extends JPanel {
         FishingSystem.FishState fishState = game.getFishing().getState();
 
         if(fishState == FishingSystem.FishState.CASTING) {
+            String zoneName = game.getFishing().getCurrentZone().name;
+            g2.setColor(new Color(180, 220, 255));
+            g2.setFont(new Font("Arial", Font.BOLD, 14));
+            g2.drawString("Zone: " + zoneName, 50, HEIGHT - 160);
+
             g2.setColor(Color.WHITE);
             g2.setFont(new Font("Monospaced", Font.BOLD, 22));
             String txt = "Klick ins Wasser zum Werfen!";
@@ -149,11 +159,42 @@ public class GamePanel extends JPanel {
         }
 
         if(fishState == FishingSystem.FishState.RESULT) {
-            g2.setColor(game.getFishing().isSuccess() ? Color.GREEN : Color.RED);
-            g2.setFont(new Font("Monospaced", Font.BOLD, 32));
-            String txt = game.getFishing().isSuccess() ? "Gefangen!" : "Entwischt!";
-            FontMetrics fm = g2.getFontMetrics();
-            g2.drawString(txt, WIDTH/2 - fm.stringWidth(txt)/2, HEIGHT/2);
+            if(game.getFishing().isSuccess()) {
+                Fish f = game.getFishing().getLastCaughtFish();
+                float t = Math.min(game.getFishing().getResultTimer() * 3.5f, 1f);
+                float scale = 0.3f + t * 1.7f;
+
+                int cx = WIDTH / 2;
+                int cy = HEIGHT / 2 - 20;
+                int r  = (int)(70 * scale);
+
+                g2.setColor(Color.WHITE);
+                g2.fillOval(cx - r, cy - r, r * 2, r * 2);
+
+                if(f != null) {
+                    java.awt.image.BufferedImage sprite = SpriteLoader.getFishSprite(f.type.spriteIndex);
+                    if(sprite != null) {
+                        int imgSize = (int)(90 * scale);
+                        g2.drawImage(sprite, cx - imgSize/2, cy - imgSize/2, imgSize, imgSize, null);
+                    }
+                    int textY = cy + r + 22;
+                    g2.setColor(Color.WHITE);
+                    g2.setFont(new Font("Arial", Font.BOLD, 20));
+                    FontMetrics fm = g2.getFontMetrics();
+                    String name = f.type.name;
+                    g2.drawString(name, cx - fm.stringWidth(name)/2, textY);
+                    g2.setFont(new Font("Arial", Font.PLAIN, 16));
+                    String stats = String.format("%.2f kg  |  %.1f cm  |  %d G", f.weightKg, f.lengthCm, f.price);
+                    fm = g2.getFontMetrics();
+                    g2.drawString(stats, cx - fm.stringWidth(stats)/2, textY + 22);
+                }
+            } else {
+                g2.setColor(Color.RED);
+                g2.setFont(new Font("Monospaced", Font.BOLD, 32));
+                String txt = "Entwischt!";
+                FontMetrics fm = g2.getFontMetrics();
+                g2.drawString(txt, WIDTH/2 - fm.stringWidth(txt)/2, HEIGHT/2);
+            }
         }
     }
 
@@ -212,7 +253,7 @@ public class GamePanel extends JPanel {
     }
 
     private void drawHud(Graphics2D g2) {
-        entities.Player p = game.getPlayer();
+        Player p = game.getPlayer();
         int pad = 10;
         int panelH = 48;
 
@@ -260,11 +301,10 @@ public class GamePanel extends JPanel {
 
         String hint = null;
         if (game.getState() == Game.GameState.EXPLORING) {
-            if (p.isNearWater())               hint = "[F] Angeln";
-            if (isNearShopKeeperPublic())      hint = "[E] Shop öffnen";
+            if (p.isNearWater()) hint = "[F] Angeln";
+            if (isNearShopKeeperPublic()) hint = "[E] Shop öffnen";
         }
         if (hint != null) {
-            FontMetrics fm = g2.getFontMetrics();
             g2.setFont(new Font("Arial", Font.BOLD, 16));
             int hw = g2.getFontMetrics().stringWidth(hint) + 24;
             int hx = (WIDTH - hw) / 2;
@@ -273,6 +313,18 @@ public class GamePanel extends JPanel {
             g2.fillRoundRect(hx, hy, hw, 28, 10, 10);
             g2.setColor(Color.WHITE);
             g2.drawString(hint, hx + 12, hy + 20);
+        }
+
+        String lockedMsg = game.getLockedZoneMessage();
+        if (lockedMsg != null) {
+            g2.setFont(new Font("Arial", Font.BOLD, 15));
+            int lw = g2.getFontMetrics().stringWidth(lockedMsg) + 28;
+            int lx = (WIDTH - lw) / 2;
+            int ly = HEIGHT - 80;
+            g2.setColor(new Color(160, 30, 30, 210));
+            g2.fillRoundRect(lx, ly, lw, 30, 10, 10);
+            g2.setColor(Color.WHITE);
+            g2.drawString(lockedMsg, lx + 14, ly + 21);
         }
         g2.setColor(new Color(0, 0, 0, 130));
         g2.fillRoundRect(WIDTH - 90, HEIGHT - 36, 80, 26, 8, 8);
@@ -288,8 +340,8 @@ public class GamePanel extends JPanel {
     }
 
     private boolean isNearShopKeeperPublic() {
-        entities.HitBox pk  = game.getShopKeeper().getHitBox();
-        entities.HitBox plr = game.getPlayer().getHitBox();
+        HitBox pk  = game.getShopKeeper().getHitBox();
+        HitBox plr = game.getPlayer().getHitBox();
         int range = 48;
         return plr.x < pk.x + pk.width  + range &&
                plr.x + plr.width  > pk.x - range &&
@@ -298,13 +350,13 @@ public class GamePanel extends JPanel {
     }
 
     private void drawShopKeeper(Graphics2D g2) {
-        entities.ShopKeeper sk = game.getShopKeeper();
+        ShopKeeper sk = game.getShopKeeper();
         int sx = sk.getX() - game.getCamera().getX();
         int sy = sk.getY() - game.getCamera().getY();
-        int sw = entities.ShopKeeper.SPRITE_W;
-        int sh = entities.ShopKeeper.SPRITE_H;
+        int sw = ShopKeeper.SPRITE_W;
+        int sh = ShopKeeper.SPRITE_H;
 
-        java.awt.image.BufferedImage sprite = util.SpriteLoader.getShopKeeper();
+        BufferedImage sprite = SpriteLoader.getShopKeeper();
         g2.drawImage(sprite, sx, sy, sw, sh, null);
     }
 
@@ -333,43 +385,47 @@ public class GamePanel extends JPanel {
         int leftX = panelX + 20;
         int itemY  = panelY + 90;
         int itemW  = (panelW / 2) - 40;
-        int rowH   = 48;
+        int rowH   = 40;
+        int listMaxH = panelH - 90 - 50; // leave room for buy button
 
         g2.setColor(Color.WHITE);
         g2.setFont(new Font("Arial", Font.BOLD, 16));
         g2.drawString("Kaufen (SPACE / Klick)", leftX, itemY - 10);
 
         ShopSystem shop = game.getShopSystem();
-        shop.rebuildItemRects(leftX, itemY, itemW, rowH);
+        Player p2 = game.getPlayer();
+        java.util.List<data.ShopItem> items = shop.getVisibleItems(p2);
+        shop.rebuildItemRects(leftX, itemY, itemW, rowH, items.size());
 
-        java.util.List<data.ShopItem> items = shop.getItems();
+        Shape oldClip = g2.getClip();
+        g2.setClip(panelX, itemY, panelW, listMaxH);
         for (int i = 0; i < items.size(); i++) {
             data.ShopItem item = items.get(i);
             int iy = itemY + i * rowH;
 
             boolean selected = (i == shop.getSelectedIndex());
-            boolean isRodItem  = item.getType() == data.ShopItem.Type.ROD;
             boolean isBaitItem = item.getType() == data.ShopItem.Type.BAIT;
-            boolean equippedRod  = isRodItem  && game.getPlayer().getEquippedRod()  != null
-                    && game.getPlayer().getEquippedRod().name.equals(item.getName());
-            boolean equippedBait = isBaitItem && game.getPlayer().getEquippedBait() != null
-                    && game.getPlayer().getEquippedBait().name.equals(item.getName())
-                    && game.getPlayer().getBaitCount() > 0;
-            String badge = equippedRod ? " ✓" : (equippedBait ? " x" + game.getPlayer().getBaitCount() : "");
+            boolean equippedBait = isBaitItem && p2.getEquippedBait() != null
+                    && p2.getEquippedBait().name.equals(item.getName())
+                    && p2.getBaitCount() > 0;
+            String badge = equippedBait ? " x" + p2.getBaitCount() : "";
 
             g2.setColor(selected ? new Color(80, 140, 60) : new Color(55, 70, 55));
-            g2.fillRoundRect(leftX, iy, itemW, rowH - 6, 10, 10);
+            g2.fillRoundRect(leftX, iy, itemW, rowH - 4, 10, 10);
 
             g2.setColor(selected ? Color.WHITE : new Color(200, 200, 200));
-            g2.setFont(new Font("Arial", Font.BOLD, 15));
-            g2.drawString(item.getName() + badge, leftX + 10, iy + 20);
-            g2.setFont(new Font("Arial", Font.PLAIN, 13));
+            g2.setFont(new Font("Arial", Font.BOLD, 13));
+            g2.drawString(item.getName() + badge, leftX + 10, iy + 16);
+            g2.setFont(new Font("Arial", Font.PLAIN, 12));
             g2.setColor(new Color(255, 220, 80));
-            g2.drawString(item.getPrice() + "G" + (isBaitItem ? "  (5x)" : ""), leftX + 10, iy + 36);
+            String priceLabel = item.getPrice() + "G" + (isBaitItem ? "  (5x)" : "");
+            g2.drawString(priceLabel, leftX + 10, iy + 30);
         }
+        g2.setClip(oldClip);
+
         int btnX = leftX;
-        int btnY = itemY + items.size() * rowH + 10;
-        shop.setBuyButton(new java.awt.Rectangle(btnX, btnY, itemW, 32));
+        int btnY = panelY + panelH - 44;
+        shop.setBuyButton(new Rectangle(btnX, btnY, itemW, 32));
         g2.setColor(new Color(60, 140, 60));
         g2.fillRoundRect(btnX, btnY, itemW, 32, 8, 8);
         g2.setColor(Color.WHITE);
@@ -383,10 +439,10 @@ public class GamePanel extends JPanel {
         g2.setFont(new Font("Arial", Font.BOLD, 16));
         g2.drawString("Inventar", rightX, itemY - 10);
 
-        java.util.List<entities.Fish> inv = game.getPlayer().getInventory();
+        java.util.List<Fish> inv = game.getPlayer().getInventory();
         g2.setFont(new Font("Arial", Font.PLAIN, 13));
         for (int i = 0; i < inv.size(); i++) {
-            entities.Fish fish = inv.get(i);
+            Fish fish = inv.get(i);
             int iy = itemY + i * 22;
             g2.setColor(new Color(200, 220, 200));
             g2.drawString(fish.type.name + " – " + fish.weightKg + "kg = " + fish.price + "G",
@@ -398,7 +454,7 @@ public class GamePanel extends JPanel {
         }
 
         int sellBtnY = panelY + panelH - 50;
-        shop.setSellAllButton(new java.awt.Rectangle(rightX, sellBtnY, rightW, 32));
+        shop.setSellAllButton(new Rectangle(rightX, sellBtnY, rightW, 32));
         g2.setColor(new Color(160, 80, 40));
         g2.fillRoundRect(rightX, sellBtnY, rightW, 32, 8, 8);
         g2.setColor(Color.WHITE);
@@ -408,7 +464,7 @@ public class GamePanel extends JPanel {
         g2.setColor(new Color(160, 160, 160));
         g2.setFont(new Font("Arial", Font.PLAIN, 13));
         g2.drawString("W/S = wählen   SPACE = kaufen   ESC = schließen",
-                panelX + 20, panelY + panelH - 10);
+                panelX + 20, panelY + panelH - 52);
     }
 
     private void drawFishBook(Graphics2D g2) {
@@ -429,7 +485,7 @@ public class GamePanel extends JPanel {
         g2.setFont(new Font("Arial", Font.BOLD, 24));
         g2.drawString("Fischbuch", panelX + 20, panelY + 35);
 
-        java.util.Map<String, entities.FishBookEntry> book = game.getPlayer().getFishBook();
+        java.util.Map<String, FishBookEntry> book = game.getPlayer().getFishBook();
 
         if (book.isEmpty()) {
             g2.setColor(new Color(160, 160, 160));
@@ -440,7 +496,7 @@ public class GamePanel extends JPanel {
             int rowH  = 52;
             int startY = panelY + 60;
             int i = 0;
-            for (entities.FishBookEntry entry : book.values()) {
+            for (FishBookEntry entry : book.values()) {
                 int col = i % 2;
                 int row = i / 2;
                 int ex  = panelX + 20 + col * (colW + 10);
@@ -452,9 +508,9 @@ public class GamePanel extends JPanel {
                 g2.setColor(isNew ? new Color(60, 120, 70) : new Color(45, 65, 50));
                 g2.fillRoundRect(ex, ey, colW - 10, rowH - 6, 10, 10);
 
-                BufferedImage sprite = util.SpriteLoader.getFishSprite(
-                        data.FishRegistry.findByName(entry.getFishName()) != null
-                        ? data.FishRegistry.findByName(entry.getFishName()).spriteIndex : -1);
+                BufferedImage sprite = SpriteLoader.getFishSprite(
+                        FishRegistry.findByName(entry.getFishName()) != null
+                        ? FishRegistry.findByName(entry.getFishName()).spriteIndex : -1);
 
                 if (sprite != null) {
                     int imgSize = rowH - 10;
@@ -483,4 +539,5 @@ public class GamePanel extends JPanel {
         g2.setFont(new Font("Arial", Font.PLAIN, 13));
         g2.drawString("[B] / ESC = schließen", panelX + 20, panelY + panelH - 10);
     }
+
 }

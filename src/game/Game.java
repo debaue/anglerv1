@@ -2,11 +2,15 @@ package game;
 
 import data.RodRegistry;
 import entities.Fish;
+import entities.HitBox;
 import entities.Player;
+import entities.ShopKeeper;
 import util.InputHandler;
 import util.SpriteLoader;
 import world.Camera;
+import world.FishingZone;
 import world.TileMap;
+import world.ZoneRegistry;
 
 public class Game {
 
@@ -21,8 +25,15 @@ public class Game {
     private Camera camera;
     private InputHandler input;
     private FishingSystem fishingSystem;
-    private entities.ShopKeeper shopKeeper;
+    private ShopKeeper shopKeeper;
     private ShopSystem shopSystem;
+
+    private String lockedZoneMessage = null;
+    private float lockedZoneTimer = 0f;
+
+    private final StringBuilder nameInput = new StringBuilder();
+    private int titleSelection = 0; // 0 = Neues Spiel, 1 = Weiterspielen
+    public static final boolean SAVE_EXISTS = false; // wird true wenn JSON fertig ist
 
     public Game(InputHandler input) {
         SpriteLoader.init();
@@ -30,12 +41,11 @@ public class Game {
 
         tileMap = new TileMap();
         tileMap.loadFromFile("src/world/map01.txt");
-        player = new Player(RodRegistry.getStarter(),input,tileMap);
-        camera = new Camera(GamePanel.WIDTH,GamePanel.HEIGHT, tileMap);
+        camera = new Camera(GamePanel.WIDTH, GamePanel.HEIGHT, tileMap);
         fishingSystem = new FishingSystem(input);
-
-        shopKeeper = new entities.ShopKeeper(500, 300);
+        shopKeeper = new ShopKeeper(500, 300);
         shopSystem = new ShopSystem();
+        player = new Player(RodRegistry.getStarter(), input, tileMap);
     }
     public void update(float delta) {
         switch(state) {
@@ -43,8 +53,21 @@ public class Game {
                 player.update(delta);
                 camera.update(player.getX(), player.getY());
 
+                if(lockedZoneTimer > 0f) {
+                    lockedZoneTimer -= delta;
+                    if(lockedZoneTimer <= 0f) lockedZoneMessage = null;
+                }
+
                 if(input.fishing && player.isNearWater()) {
-                    state = GameState.FISHING_MENU;
+                    int col = player.getX() / TileMap.TILE_SIZE;
+                    int row = player.getY() / TileMap.TILE_SIZE;
+                    FishingZone zone = ZoneRegistry.getZoneAtTile(col, row);
+                    if(player.isZoneUnlocked(zone)) {
+                        state = GameState.FISHING_MENU;
+                    } else {
+                        lockedZoneMessage = "Zone gesperrt: " + zone.name + " – kaufe sie im Shop!";
+                        lockedZoneTimer = 3f;
+                    }
                     input.fishing = false;
                 }
                 if(input.inventoryPressed) {
@@ -90,10 +113,9 @@ public class Game {
                 if(fishingSystem.getState() == FishingSystem.FishState.CASTING
                         && fishingSystem.isSuccess()) {
                     Fish caught = fishingSystem.collectCaughtFish();
-                    if(caught != null) {
-                        player.addFish(caught);
-                    }
+                    if(caught != null) player.addFish(caught);
                     fishingSystem.resetSuccess();
+                    state = GameState.EXPLORING;
                 }
 
                 if(input.escape) {
@@ -110,8 +132,8 @@ public class Game {
     }
 
     private boolean isNearShopKeeper() {
-        entities.HitBox pk = shopKeeper.getHitBox();
-        entities.HitBox plr = player.getHitBox();
+        HitBox pk = shopKeeper.getHitBox();
+        HitBox plr = player.getHitBox();
         int range = 48;
         return plr.x < pk.x + pk.width  + range &&
                plr.x + plr.width  > pk.x - range &&
@@ -119,11 +141,15 @@ public class Game {
                plr.y + plr.height > pk.y - range;
     }
 
+    public String           getLockedZoneMessage() { return lockedZoneTimer > 0f ? lockedZoneMessage : null; }
+    public String           getNameInput()         { return nameInput.toString(); }
+    public int              getTitleSelection()    { return titleSelection; }
+
     public GameState        getState()       { return state; }
     public Player           getPlayer()      { return player; }
     public Camera           getCamera()      { return camera; }
     public TileMap          getTileMap()     { return tileMap; }
     public FishingSystem    getFishing()     { return fishingSystem; }
-    public entities.ShopKeeper getShopKeeper() { return shopKeeper; }
+    public ShopKeeper getShopKeeper() { return shopKeeper; }
     public ShopSystem       getShopSystem()  { return shopSystem; }
 }

@@ -3,17 +3,22 @@ package entities;
 import data.BaitRegistry;
 import util.AnimationController;
 import util.InputHandler;
+import world.FishingZone;
 import world.TileMap;
 import world.TileType;
+import world.ZoneRegistry;
 
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class Player {
 
+    private String name = "Angler";
     private int gold;
     private Rod equippedRod;
     private Bait equippedBait;
@@ -21,6 +26,7 @@ public class Player {
     private List<Fish> inventory = new ArrayList<>();
     private int maxSlots;
     private final Map<String, FishBookEntry> fishBook = new LinkedHashMap<>();
+    private final Set<String> unlockedZones = new HashSet<>();
 
     private final int SPEED = 3;
     private AnimationController animator;
@@ -40,6 +46,7 @@ public class Player {
         this.equippedRod = startRod;
         this.equippedBait = BaitRegistry.getStarter();
         this.baitCount = -1; // -1 = unbegrenzt (Standard-Köder)
+        this.unlockedZones.add(ZoneRegistry.STARTTEICH.name);
         this.maxSlots = 10;
         this.animator = new AnimationController();
 
@@ -183,6 +190,19 @@ public class Player {
         this.baitCount = count;
     }
 
+    public void stackBait(Bait bait, int count) {
+        if (equippedBait != null && equippedBait.name.equals(bait.name) && baitCount > 0) {
+            baitCount += count;
+        } else {
+            equippedBait = bait;
+            baitCount = count;
+        }
+    }
+
+    public void addSlots(int n) {
+        maxSlots += n;
+    }
+
     public int getBaitCount() {
         return baitCount;
     }
@@ -200,6 +220,9 @@ public class Player {
         return animator.getCurrentFrame();
     }
 
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+
     public int getX() {
         return x;
     }
@@ -214,5 +237,13 @@ public class Player {
 
     public Map<String, FishBookEntry> getFishBook() {
         return fishBook;
+    }
+
+    public boolean isZoneUnlocked(FishingZone zone) {
+        return unlockedZones.contains(zone.name);
+    }
+
+    public void unlockZone(FishingZone zone) {
+        unlockedZones.add(zone.name);
     }
 }
