@@ -5,6 +5,8 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 
 import data.FishRegistry;
+import game.renderer.FishingRenderer;
+import game.renderer.ShopRenderer;
 import entities.Fish;
 import entities.FishBookEntry;
 import entities.HitBox;
@@ -20,6 +22,8 @@ public class GamePanel extends JPanel {
     public static final int HEIGHT = 576;
     private final Game game;
     private final Timer timer;
+    private FishingRenderer fishingRenderer;
+    private ShopRenderer shopRenderer;
 
 
     public GamePanel() {
@@ -32,6 +36,8 @@ public class GamePanel extends JPanel {
         addMouseListener(input);
 
         game = new Game(input);
+        fishingRenderer = new FishingRenderer(game);
+        shopRenderer    = new ShopRenderer(game);
 
         timer = new Timer(16, e -> {
             game.update(0.016f);
@@ -66,9 +72,9 @@ public class GamePanel extends JPanel {
         drawHud(g2);
 
         switch (game.getState()) {
-            case FISHING_MENU -> drawFishingScreen(g2);
+            case FISHING_MENU -> fishingRenderer.draw(g2);
             case INVENTORY    -> drawInventory(g2);
-            case SHOP         -> drawShop(g2);
+            case SHOP         -> shopRenderer.draw(g2);
             case FISH_BOOK    -> drawFishBook(g2);
         }
     }
@@ -90,113 +96,6 @@ public class GamePanel extends JPanel {
     }
 
 
-    private void drawFishingScreen(Graphics2D g2) {
-        g2.drawImage(SpriteLoader.getFishingEarthBg(), 0, 0, WIDTH, HEIGHT, null);
-
-        g2.drawImage(SpriteLoader.getFishingBg(), 40, 20, WIDTH-80, HEIGHT-200, null);
-
-        FishingSystem.FishState fishState = game.getFishing().getState();
-
-        if(fishState == FishingSystem.FishState.CASTING) {
-            String zoneName = game.getFishing().getCurrentZone().name;
-            g2.setColor(new Color(180, 220, 255));
-            g2.setFont(new Font("Arial", Font.BOLD, 14));
-            g2.drawString("Zone: " + zoneName, 50, HEIGHT - 160);
-
-            g2.setColor(Color.WHITE);
-            g2.setFont(new Font("Monospaced", Font.BOLD, 22));
-            String txt = "Klick ins Wasser zum Werfen!";
-            FontMetrics fm = g2.getFontMetrics();
-            g2.drawString(txt, WIDTH/2 - fm.stringWidth(txt)/2, HEIGHT - 140);
-            return;
-        }
-
-        int bx = game.getFishing().getBobberX();
-        int by = game.getFishing().getBobberY();
-
-        if(fishState == FishingSystem.FishState.BITING) {
-            g2.drawImage(SpriteLoader.getBobberBiting(),
-                    bx - 16, by - 16, 32, 32, null);
-            g2.setColor(Color.WHITE);
-            g2.setFont(new Font("Monospaced", Font.BOLD, 28));
-            String txt = "SPACE!";
-            FontMetrics fm = g2.getFontMetrics();
-            g2.drawString(txt, WIDTH/2 - fm.stringWidth(txt)/2, HEIGHT/2);
-            return;
-        }
-
-        if(fishState == FishingSystem.FishState.WAITING) {
-            g2.drawImage(SpriteLoader.getBobberNormal(),
-                    bx - 16, by - 16, 32, 32, null);
-            return;
-        }
-
-        if(fishState == FishingSystem.FishState.MINIGAME) {
-            g2.drawImage(SpriteLoader.getBobberBiting(),
-                    bx - 16, by - 16, 32, 32, null);
-
-            int barY = HEIGHT - 120;
-            int barW = game.getFishing().getBarWidth();
-            int barX = (WIDTH - barW) / 2;
-            int barH = 50;
-
-            g2.setColor(new Color(255, 180, 200));
-            g2.fillRect(barX, barY, barW, barH);
-
-            int greenX = barX + (int) game.getFishing().getGreenStart();
-            int greenW = (int) game.getFishing().getGreenWidth();
-            g2.setColor(new Color(50, 180, 50));
-            g2.fillRect(greenX, barY, greenW, barH);
-
-            int markerX = barX + (int) game.getFishing().getMarkerX();
-            g2.setColor(new Color(40, 20, 10));
-            g2.fillRect(markerX - 10, barY - 5, 20, barH + 10);
-
-            g2.setColor(Color.WHITE);
-            g2.setFont(new Font("Monospaced", Font.BOLD, 16));
-            g2.drawString("Treffer: " + game.getFishing().getHits() + "/3", barX, barY - 10);
-            g2.drawString("Fehler: " + game.getFishing().getMisses() + "/2", barX + barW - 100, barY - 10);
-        }
-
-        if(fishState == FishingSystem.FishState.RESULT) {
-            if(game.getFishing().isSuccess()) {
-                Fish f = game.getFishing().getLastCaughtFish();
-                float t = Math.min(game.getFishing().getResultTimer() * 3.5f, 1f);
-                float scale = 0.3f + t * 1.7f;
-
-                int cx = WIDTH / 2;
-                int cy = HEIGHT / 2 - 20;
-                int r  = (int)(70 * scale);
-
-                g2.setColor(Color.WHITE);
-                g2.fillOval(cx - r, cy - r, r * 2, r * 2);
-
-                if(f != null) {
-                    java.awt.image.BufferedImage sprite = SpriteLoader.getFishSprite(f.type.spriteIndex);
-                    if(sprite != null) {
-                        int imgSize = (int)(90 * scale);
-                        g2.drawImage(sprite, cx - imgSize/2, cy - imgSize/2, imgSize, imgSize, null);
-                    }
-                    int textY = cy + r + 22;
-                    g2.setColor(Color.WHITE);
-                    g2.setFont(new Font("Arial", Font.BOLD, 20));
-                    FontMetrics fm = g2.getFontMetrics();
-                    String name = f.type.name;
-                    g2.drawString(name, cx - fm.stringWidth(name)/2, textY);
-                    g2.setFont(new Font("Arial", Font.PLAIN, 16));
-                    String stats = String.format("%.2f kg  |  %.1f cm  |  %d G", f.weightKg, f.lengthCm, f.price);
-                    fm = g2.getFontMetrics();
-                    g2.drawString(stats, cx - fm.stringWidth(stats)/2, textY + 22);
-                }
-            } else {
-                g2.setColor(Color.RED);
-                g2.setFont(new Font("Monospaced", Font.BOLD, 32));
-                String txt = "Entwischt!";
-                FontMetrics fm = g2.getFontMetrics();
-                g2.drawString(txt, WIDTH/2 - fm.stringWidth(txt)/2, HEIGHT/2);
-            }
-        }
-    }
 
     private void drawInventory(Graphics2D g2) {
         g2.setColor(new Color(0, 0, 0, 170));
@@ -358,113 +257,6 @@ public class GamePanel extends JPanel {
 
         BufferedImage sprite = SpriteLoader.getShopKeeper();
         g2.drawImage(sprite, sx, sy, sw, sh, null);
-    }
-
-    private void drawShop(Graphics2D g2) {
-        g2.setColor(new Color(0, 0, 0, 180));
-        g2.fillRect(0, 0, WIDTH, HEIGHT);
-
-        int panelX = 40;
-        int panelY = 60;
-        int panelW = WIDTH - 80;
-        int panelH = HEIGHT - 120;
-
-        g2.setColor(new Color(40, 50, 40, 240));
-        g2.fillRoundRect(panelX, panelY, panelW, panelH, 20, 20);
-        g2.setColor(new Color(100, 160, 80));
-        g2.drawRoundRect(panelX, panelY, panelW, panelH, 20, 20);
-
-        g2.setColor(Color.WHITE);
-        g2.setFont(new Font("Arial", Font.BOLD, 26));
-        g2.drawString("Shop", panelX + 20, panelY + 36);
-
-        g2.setFont(new Font("Arial", Font.PLAIN, 16));
-        g2.setColor(new Color(255, 220, 80));
-        g2.drawString("Gold: " + game.getPlayer().getGold() + "G", panelX + 20, panelY + 60);
-
-        int leftX = panelX + 20;
-        int itemY  = panelY + 90;
-        int itemW  = (panelW / 2) - 40;
-        int rowH   = 40;
-        int listMaxH = panelH - 90 - 50; // leave room for buy button
-
-        g2.setColor(Color.WHITE);
-        g2.setFont(new Font("Arial", Font.BOLD, 16));
-        g2.drawString("Kaufen (SPACE / Klick)", leftX, itemY - 10);
-
-        ShopSystem shop = game.getShopSystem();
-        Player p2 = game.getPlayer();
-        java.util.List<data.ShopItem> items = shop.getVisibleItems(p2);
-        shop.rebuildItemRects(leftX, itemY, itemW, rowH, items.size());
-
-        Shape oldClip = g2.getClip();
-        g2.setClip(panelX, itemY, panelW, listMaxH);
-        for (int i = 0; i < items.size(); i++) {
-            data.ShopItem item = items.get(i);
-            int iy = itemY + i * rowH;
-
-            boolean selected = (i == shop.getSelectedIndex());
-            boolean isBaitItem = item.getType() == data.ShopItem.Type.BAIT;
-            boolean equippedBait = isBaitItem && p2.getEquippedBait() != null
-                    && p2.getEquippedBait().name.equals(item.getName())
-                    && p2.getBaitCount() > 0;
-            String badge = equippedBait ? " x" + p2.getBaitCount() : "";
-
-            g2.setColor(selected ? new Color(80, 140, 60) : new Color(55, 70, 55));
-            g2.fillRoundRect(leftX, iy, itemW, rowH - 4, 10, 10);
-
-            g2.setColor(selected ? Color.WHITE : new Color(200, 200, 200));
-            g2.setFont(new Font("Arial", Font.BOLD, 13));
-            g2.drawString(item.getName() + badge, leftX + 10, iy + 16);
-            g2.setFont(new Font("Arial", Font.PLAIN, 12));
-            g2.setColor(new Color(255, 220, 80));
-            String priceLabel = item.getPrice() + "G" + (isBaitItem ? "  (5x)" : "");
-            g2.drawString(priceLabel, leftX + 10, iy + 30);
-        }
-        g2.setClip(oldClip);
-
-        int btnX = leftX;
-        int btnY = panelY + panelH - 44;
-        shop.setBuyButton(new Rectangle(btnX, btnY, itemW, 32));
-        g2.setColor(new Color(60, 140, 60));
-        g2.fillRoundRect(btnX, btnY, itemW, 32, 8, 8);
-        g2.setColor(Color.WHITE);
-        g2.setFont(new Font("Arial", Font.BOLD, 14));
-        g2.drawString("Kaufen [SPACE]", btnX + 12, btnY + 21);
-
-        int rightX = panelX + panelW / 2 + 20;
-        int rightW = panelW / 2 - 40;
-
-        g2.setColor(Color.WHITE);
-        g2.setFont(new Font("Arial", Font.BOLD, 16));
-        g2.drawString("Inventar", rightX, itemY - 10);
-
-        java.util.List<Fish> inv = game.getPlayer().getInventory();
-        g2.setFont(new Font("Arial", Font.PLAIN, 13));
-        for (int i = 0; i < inv.size(); i++) {
-            Fish fish = inv.get(i);
-            int iy = itemY + i * 22;
-            g2.setColor(new Color(200, 220, 200));
-            g2.drawString(fish.type.name + " – " + fish.weightKg + "kg = " + fish.price + "G",
-                    rightX, iy + 14);
-        }
-        if (inv.isEmpty()) {
-            g2.setColor(new Color(150, 150, 150));
-            g2.drawString("Keine Fische", rightX, itemY + 14);
-        }
-
-        int sellBtnY = panelY + panelH - 50;
-        shop.setSellAllButton(new Rectangle(rightX, sellBtnY, rightW, 32));
-        g2.setColor(new Color(160, 80, 40));
-        g2.fillRoundRect(rightX, sellBtnY, rightW, 32, 8, 8);
-        g2.setColor(Color.WHITE);
-        g2.setFont(new Font("Arial", Font.BOLD, 14));
-        g2.drawString("Alle verkaufen", rightX + 10, sellBtnY + 21);
-
-        g2.setColor(new Color(160, 160, 160));
-        g2.setFont(new Font("Arial", Font.PLAIN, 13));
-        g2.drawString("W/S = wählen   SPACE = kaufen   ESC = schließen",
-                panelX + 20, panelY + panelH - 52);
     }
 
     private void drawFishBook(Graphics2D g2) {

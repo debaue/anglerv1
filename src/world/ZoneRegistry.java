@@ -23,8 +23,15 @@ public class ZoneRegistry {
     public static final FishingZone[] ALL = { STARTTEICH, OSTSEE, SUEDSEE };
 
     public static FishingZone getZoneAtTile(int col, int row) {
-        for (FishingZone z : ALL) {
-            if (z.containsTile(col, row)) return z;
+        for (int r = 0; r <= 4; r++) {
+            for (int dc = -r; dc <= r; dc++) {
+                for (int dr = -r; dr <= r; dr++) {
+                    if (Math.abs(dc) != r && Math.abs(dr) != r) continue;
+                    for (FishingZone z : ALL) {
+                        if (z.containsTile(col + dc, row + dr)) return z;
+                    }
+                }
+            }
         }
         return STARTTEICH;
     }

@@ -59,15 +59,7 @@ public class Game {
                 }
 
                 if(input.fishing && player.isNearWater()) {
-                    int col = player.getX() / TileMap.TILE_SIZE;
-                    int row = player.getY() / TileMap.TILE_SIZE;
-                    FishingZone zone = ZoneRegistry.getZoneAtTile(col, row);
-                    if(player.isZoneUnlocked(zone)) {
-                        state = GameState.FISHING_MENU;
-                    } else {
-                        lockedZoneMessage = "Zone gesperrt: " + zone.name + " – kaufe sie im Shop!";
-                        lockedZoneTimer = 3f;
-                    }
+                    state = GameState.FISHING_MENU;
                     input.fishing = false;
                 }
                 if(input.inventoryPressed) {

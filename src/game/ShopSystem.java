@@ -57,7 +57,7 @@ import java.util.List;
             for (ShopItem item : items) {
                 if (item.getType() == ShopItem.Type.ROD) {
                     Rod rod = (Rod) item.getPayload();
-                    if (rod.tier <= player.getEquippedRod().tier) continue;
+                    if (rod.tier != player.getEquippedRod().tier + 1) continue;
                 }
                 if (item.getType() == ShopItem.Type.ZONE) {
                     FishingZone zone = (FishingZone) item.getPayload();
@@ -135,6 +135,7 @@ import java.util.List;
             }
 
             if (item.getType() == ShopItem.Type.GENERIC && item.getId().equals("slot_upgrade")) {
+                if (player.getMaxSlots() >= 30) return false;
                 player.addGold(-item.getPrice());
                 player.addSlots((int) item.getPayload());
                 return true;

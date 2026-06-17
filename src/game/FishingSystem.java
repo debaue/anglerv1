@@ -55,6 +55,8 @@ public class FishingSystem {
     }
 
     public void update(float delta, Player player) {
+        currentZone = player.getActiveZone();
+
         switch(state) {
             case CASTING -> {
                 if(input.mouseClicked) {
@@ -140,9 +142,7 @@ public class FishingSystem {
         markerX   = 0;
         markerDir = 1;
 
-        int col = player.getX() / TileMap.TILE_SIZE;
-        int row = player.getY() / TileMap.TILE_SIZE;
-        currentZone = ZoneRegistry.getZoneAtTile(col, row);
+        currentZone = player.getActiveZone();
 
         float baitBonus = player.getEquippedBait() != null ? player.getEquippedBait().rarityBonus : 0f;
         caughtType = FishRegistry.getRandom(currentZone, baitBonus);

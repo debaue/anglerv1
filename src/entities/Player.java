@@ -42,7 +42,7 @@ public class Player {
     private final TileMap map;
 
     public Player(Rod startRod, InputHandler input, TileMap map) {
-        this.gold = 0;
+        this.gold = 10000;
         this.equippedRod = startRod;
         this.equippedBait = BaitRegistry.getStarter();
         this.baitCount = -1; // -1 = unbegrenzt (Standard-Köder)
@@ -245,5 +245,11 @@ public class Player {
 
     public void unlockZone(FishingZone zone) {
         unlockedZones.add(zone.name);
+    }
+
+    public FishingZone getActiveZone() {
+        if (isZoneUnlocked(ZoneRegistry.SUEDSEE)) return ZoneRegistry.SUEDSEE;
+        if (isZoneUnlocked(ZoneRegistry.OSTSEE))  return ZoneRegistry.OSTSEE;
+        return ZoneRegistry.STARTTEICH;
     }
 }
