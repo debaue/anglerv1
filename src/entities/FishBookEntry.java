@@ -33,6 +33,12 @@ public class FishBookEntry {
         }
     }
 
+    public void restoreStats(int count, float heaviest, float longest) {
+        this.caughtCount    = count;
+        this.heaviestWeight = heaviest;
+        this.longestLength  = longest;
+    }
+
     public String getFishName()            { return fishName; }
     public int getCaughtCount()            { return caughtCount; }
     public float getHeaviestWeight()       { return heaviestWeight; }

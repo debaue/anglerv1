@@ -5,7 +5,6 @@ public class ShopKeeper {
     public static final int SPRITE_W = 48;
     public static final int SPRITE_H = 64;
 
-    // HitBox ist kleiner als der Sprite und sitzt am unteren Drittel (Füße)
     private static final int HB_W = 32;
     private static final int HB_H = 24;
 

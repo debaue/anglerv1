@@ -42,10 +42,10 @@ public class Player {
     private final TileMap map;
 
     public Player(Rod startRod, InputHandler input, TileMap map) {
-        this.gold = 10000;
+        this.gold = 0;
         this.equippedRod = startRod;
         this.equippedBait = BaitRegistry.getStarter();
-        this.baitCount = -1; // -1 = unbegrenzt (Standard-Köder)
+        this.baitCount = -1;
         this.unlockedZones.add(ZoneRegistry.STARTTEICH.name);
         this.maxSlots = 10;
         this.animator = new AnimationController();
@@ -199,9 +199,8 @@ public class Player {
         }
     }
 
-    public void addSlots(int n) {
-        maxSlots += n;
-    }
+    public void addSlots(int n) { maxSlots += n; }
+    public void setMaxSlots(int n) { maxSlots = n; }
 
     public int getBaitCount() {
         return baitCount;

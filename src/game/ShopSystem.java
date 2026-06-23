@@ -47,9 +47,9 @@ import java.util.List;
                         bait
                 ));
             }
-            items.add(new ShopItem("zone_ostsee",  "Ostsee freischalten",  300, ShopItem.Type.ZONE, ZoneRegistry.OSTSEE));
-            items.add(new ShopItem("zone_suedsee", "Südsee freischalten",  800, ShopItem.Type.ZONE, ZoneRegistry.SUEDSEE));
-            items.add(new ShopItem("slot_upgrade", "+4 Inventar-Slots",    250, ShopItem.Type.GENERIC, 4));
+            items.add(new ShopItem("zone_ostsee",  "Ostsee freischalten",  900, ShopItem.Type.ZONE, ZoneRegistry.OSTSEE));
+            items.add(new ShopItem("zone_suedsee", "Südsee freischalten",  1600, ShopItem.Type.ZONE, ZoneRegistry.SUEDSEE));
+            items.add(new ShopItem("slot_upgrade", "+4 Inventar-Slots",    500, ShopItem.Type.GENERIC, 4));
         }
 
         public List<ShopItem> getVisibleItems(Player player) {
@@ -62,6 +62,9 @@ import java.util.List;
                 if (item.getType() == ShopItem.Type.ZONE) {
                     FishingZone zone = (FishingZone) item.getPayload();
                     if (player.isZoneUnlocked(zone)) continue;
+                }
+                if (item.getType() == ShopItem.Type.GENERIC && item.getId().equals("slot_upgrade")) {
+                    if (player.getMaxSlots() >= 18) continue;
                 }
                 visible.add(item);
             }
@@ -135,7 +138,7 @@ import java.util.List;
             }
 
             if (item.getType() == ShopItem.Type.GENERIC && item.getId().equals("slot_upgrade")) {
-                if (player.getMaxSlots() >= 30) return false;
+                if (player.getMaxSlots() >= 18) return false;
                 player.addGold(-item.getPrice());
                 player.addSlots((int) item.getPayload());
                 return true;

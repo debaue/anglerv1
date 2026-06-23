@@ -11,11 +11,11 @@ public class AnimationController {
         WALK
     }
 
-    private int direction = 0; // 0 1 2 3, links, rechts, hoch runter
+    private int direction = 0;
     private int frameIndex = 0;
     private float frameTimer = 0f;
     private float frameSpeed = 0.15f;
-    private AnimState state;
+    private AnimState state = AnimState.IDLE;
 
     public AnimationController() {
         this.idleFrames = SpriteLoader.getIdleFrames();
