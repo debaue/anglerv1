@@ -2,6 +2,7 @@ package game;
 
 import data.RodRegistry;
 import data.SaveManager;
+import util.MusicPlayer;
 import entities.Fish;
 import entities.HitBox;
 import entities.Player;
@@ -48,6 +49,7 @@ public class Game {
         fishingSystem = new FishingSystem(input);
         shopKeeper = new ShopKeeper(500, 300);
         shopSystem = new ShopSystem();
+        MusicPlayer.play("resources/music/background.wav");
     }
 
     public void startNewGame() {
@@ -125,6 +127,10 @@ public class Game {
                     if (mx >= btnX && mx <= btnX + btnW && my >= panelY + 140 && my <= panelY + 184) {
                         SaveManager.saveGame(player);
                         System.exit(0);
+                    }
+                    int cbX = panelX + 30, cbY = panelY + 195, cbW = 240;
+                    if (mx >= cbX && mx <= cbX + cbW && my >= cbY && my <= cbY + 30) {
+                        MusicPlayer.setMuted(MusicPlayer.isRunning());
                     }
                     input.mouseClicked = false;
                 }
