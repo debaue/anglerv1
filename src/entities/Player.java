@@ -181,15 +181,6 @@ public class Player {
         return equippedBait;
     }
 
-    public void setEquippedBait(Bait bait) {
-        this.equippedBait = bait;
-    }
-
-    public void addBait(Bait bait, int count) {
-        this.equippedBait = bait;
-        this.baitCount = count;
-    }
-
     public void stackBait(Bait bait, int count) {
         if (equippedBait != null && equippedBait.name.equals(bait.name) && baitCount > 0) {
             baitCount += count;

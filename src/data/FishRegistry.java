@@ -19,7 +19,7 @@ public class FishRegistry {
         new FishType("Lachs",        2.0f,  12.0f,  50f, 120f,   55, Rarity.RARE,       11),
         new FishType("Bachforelle",  1.0f,   5.0f,  25f,  65f,   40, Rarity.RARE,       12),
         new FishType("Stör",        20.0f, 100.0f, 100f, 300f,  120, Rarity.LEGENDARY,  13),
-        new FishType("Goldkarpfen",  5.0f,  15.0f,  40f,  90f,  200, Rarity.LEGENDARY,  14),
+        new FishType("Timmy",  5.0f,  15.0f,  40f,  90f,  200, Rarity.LEGENDARY,  14),
         new FishType("Riesenwels",  50.0f, 200.0f, 150f, 350f,  350, Rarity.LEGENDARY,  15),
     };
 

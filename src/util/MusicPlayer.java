@@ -19,10 +19,6 @@ public class MusicPlayer {
         }
     }
 
-    public static void stop() {
-        if (clip != null && clip.isRunning()) clip.stop();
-    }
-
     public static void setMuted(boolean muted) {
         if (clip == null) return;
         if (muted && clip.isRunning()) clip.stop();

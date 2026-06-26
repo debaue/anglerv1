@@ -155,9 +155,7 @@ import java.util.List;
             return false;
         }
 
-        public List<ShopItem> getItems() { return items; }
         public int getSelectedIndex() { return selectedIndex; }
-        public void setSelectedIndex(int selectedIndex) { this.selectedIndex = selectedIndex; }
 
         public Rectangle getSellAllButton() { return sellAllButton; }
         public Rectangle getBuyButton() { return buyButton; }
